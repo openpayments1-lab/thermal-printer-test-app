@@ -37,10 +37,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       
-      - name: Initialize Capacitor
-        run: |
-          npx cap init "Thermal Printer Test" "com.thermalprinter.test" --web-dir=src
-      
       - name: Add Android platform
         run: npx cap add android
       
