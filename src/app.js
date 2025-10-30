@@ -4,6 +4,8 @@ class ThermalPrinterApp {
         this.cart = [];
         this.displayInterval = null;
         this.currentImageIndex = 0;
+        this.displayActive = false;
+        this.selectedDevice = null;
         
         this.images = [
             'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
@@ -18,7 +20,16 @@ class ThermalPrinterApp {
     
     init() {
         this.setupEventListeners();
-        this.log('Application initialized', 'success');
+        this.log('Application initialized (Native Hardware Mode)', 'success');
+        this.checkCapacitorAvailable();
+    }
+    
+    checkCapacitorAvailable() {
+        if (typeof Capacitor !== 'undefined') {
+            this.log('✓ Capacitor detected - Hardware features enabled', 'success');
+        } else {
+            this.log('⚠ Running in browser - Hardware features unavailable', 'info');
+        }
     }
     
     setupEventListeners() {
@@ -65,55 +76,60 @@ class ThermalPrinterApp {
         
         if (!this.isConnected) {
             try {
-                this.log('Attempting to connect to USB printer...');
+                this.log('Scanning for USB printers...');
                 
-                if ('usb' in navigator) {
-                    const device = await navigator.usb.requestDevice({
-                        filters: [{ vendorId: 0x0DD4 }]
+                if (typeof Capacitor !== 'undefined') {
+                    const result = await Capacitor.Plugins.ThermalPrinter.listUsbDevices();
+                    this.log(`Found ${result.devices.length} USB device(s)`);
+                    
+                    if (result.devices.length === 0) {
+                        this.log('✗ No USB devices found. Please connect your VOLCORA printer.', 'error');
+                        return;
+                    }
+                    
+                    result.devices.forEach((dev, idx) => {
+                        this.log(`Device ${idx + 1}: ${dev.manufacturerName || 'Unknown'} ${dev.productName || ''} (VID: 0x${dev.vendorId.toString(16).toUpperCase()}, PID: 0x${dev.productId.toString(16).toUpperCase()})`);
                     });
                     
-                    await device.open();
-                    if (device.configuration === null) {
-                        await device.selectConfiguration(1);
-                    }
-                    await device.claimInterface(0);
+                    const device = result.devices[0];
+                    this.selectedDevice = device;
                     
-                    this.device = device;
+                    this.log(`Connecting to ${device.manufacturerName || 'USB'} printer...`);
+                    
+                    const connectResult = await Capacitor.Plugins.ThermalPrinter.connectToPrinter({
+                        vendorId: device.vendorId,
+                        productId: device.productId
+                    });
+                    
                     this.isConnected = true;
-                    
                     btn.textContent = 'Disconnect';
                     statusText.textContent = 'Connected';
                     indicator.classList.add('connected');
                     
-                    this.log('✓ USB printer connected successfully', 'success');
+                    this.log(`✓ ${connectResult.message}`, 'success');
+                    this.log(`Device: ${device.manufacturerName || 'USB Printer'} ${device.productName || ''}`, 'info');
                 } else {
-                    this.isConnected = true;
-                    btn.textContent = 'Disconnect';
-                    statusText.textContent = 'Connected (Simulation)';
-                    indicator.classList.add('connected');
-                    
-                    this.log('✓ Printer connected (simulation mode)', 'success');
-                    this.log('Note: USB API not available in browser. Deploy to Android for real USB connection.', 'info');
+                    this.log('✗ Capacitor not available. Please run on Android device.', 'error');
                 }
             } catch (error) {
-                this.log(`✗ Connection failed: ${error.message}`, 'error');
+                this.log(`✗ Connection failed: ${error}`, 'error');
             }
         } else {
-            if (this.device) {
-                try {
-                    await this.device.close();
-                } catch (e) {
-                    console.error('Error closing device:', e);
+            try {
+                if (typeof Capacitor !== 'undefined') {
+                    await Capacitor.Plugins.ThermalPrinter.disconnectPrinter();
                 }
+                
+                this.isConnected = false;
+                this.selectedDevice = null;
+                btn.textContent = 'Connect Printer';
+                statusText.textContent = 'Disconnected';
+                indicator.classList.remove('connected');
+                
+                this.log('Printer disconnected', 'info');
+            } catch (error) {
+                this.log(`✗ Disconnect error: ${error}`, 'error');
             }
-            
-            this.isConnected = false;
-            this.device = null;
-            btn.textContent = 'Connect Printer';
-            statusText.textContent = 'Disconnected';
-            indicator.classList.remove('connected');
-            
-            this.log('Printer disconnected', 'info');
         }
     }
     
@@ -123,20 +139,30 @@ class ThermalPrinterApp {
             return false;
         }
         
-        if (this.device) {
+        if (typeof Capacitor !== 'undefined') {
             try {
                 const encoder = new TextEncoder();
-                const encoded = encoder.encode(data);
-                await this.device.transferOut(1, encoded);
+                const byteArray = encoder.encode(data);
+                
+                let binary = '';
+                for (let i = 0; i < byteArray.length; i++) {
+                    binary += String.fromCharCode(byteArray[i]);
+                }
+                const base64Data = btoa(binary);
+                
+                const result = await Capacitor.Plugins.ThermalPrinter.printRawData({
+                    data: base64Data
+                });
+                
+                this.log(`✓ Sent ${result.bytesTransferred} bytes to printer`, 'success');
                 return true;
             } catch (error) {
-                this.log(`✗ Print error: ${error.message}`, 'error');
+                this.log(`✗ Print error: ${error}`, 'error');
                 return false;
             }
         } else {
-            this.log('→ Sending to printer (simulation)', 'info');
-            console.log('Print data:', data);
-            return true;
+            this.log('✗ Capacitor not available', 'error');
+            return false;
         }
     }
     
@@ -374,21 +400,114 @@ LINE QUALITY TEST
         }
     }
     
-    toggleDisplay() {
-        const display = document.getElementById('customerDisplay');
+    async toggleDisplay() {
         const btn = document.getElementById('toggleDisplayBtn');
         
-        if (display.style.display === 'none') {
-            display.style.display = 'block';
-            btn.textContent = 'Hide Customer Display';
-            this.startSlideshow();
-            this.log('✓ Customer display enabled', 'success');
+        if (!this.displayActive) {
+            try {
+                if (typeof Capacitor !== 'undefined') {
+                    this.log('Checking for secondary display...');
+                    
+                    const displayCheck = await Capacitor.Plugins.ThermalPrinter.checkSecondaryDisplay();
+                    
+                    if (!displayCheck.hasSecondaryDisplay) {
+                        this.log('✗ No secondary display detected. Connect a customer display.', 'error');
+                        this.log('  Falling back to in-app simulation...', 'info');
+                        this.showSimulatedDisplay();
+                        return;
+                    }
+                    
+                    this.log(`✓ Secondary display found: ${displayCheck.secondaryDisplayInfo.name}`, 'success');
+                    
+                    const html = this.generateCustomerDisplayHTML();
+                    await Capacitor.Plugins.ThermalPrinter.showOnSecondaryDisplay({ html });
+                    
+                    this.displayActive = true;
+                    btn.textContent = 'Hide Customer Display';
+                    this.startSlideshow();
+                    this.log('✓ Customer display activated on secondary screen', 'success');
+                } else {
+                    this.log('⚠ Running in browser, showing simulated display', 'info');
+                    this.showSimulatedDisplay();
+                }
+            } catch (error) {
+                this.log(`✗ Display error: ${error}`, 'error');
+            }
         } else {
-            display.style.display = 'none';
-            btn.textContent = 'Toggle Customer Display';
-            this.stopSlideshow();
-            this.log('Customer display disabled', 'info');
+            try {
+                if (typeof Capacitor !== 'undefined') {
+                    await Capacitor.Plugins.ThermalPrinter.hideSecondaryDisplay();
+                }
+                
+                this.displayActive = false;
+                btn.textContent = 'Toggle Customer Display';
+                this.stopSlideshow();
+                this.hideSimulatedDisplay();
+                this.log('Customer display disabled', 'info');
+            } catch (error) {
+                this.log(`✗ Error hiding display: ${error}`, 'error');
+            }
         }
+    }
+    
+    showSimulatedDisplay() {
+        const display = document.getElementById('customerDisplay');
+        const btn = document.getElementById('toggleDisplayBtn');
+        display.style.display = 'block';
+        btn.textContent = 'Hide Customer Display';
+        this.displayActive = true;
+        this.startSlideshow();
+    }
+    
+    hideSimulatedDisplay() {
+        const display = document.getElementById('customerDisplay');
+        display.style.display = 'none';
+    }
+    
+    generateCustomerDisplayHTML() {
+        const currentImage = this.images[this.currentImageIndex];
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        img {
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        .text-overlay {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <img src="${currentImage}" alt="Product">
+    <div class="text-overlay">Welcome! Thank you for shopping with us.</div>
+</body>
+</html>
+        `;
     }
     
     startSlideshow() {
