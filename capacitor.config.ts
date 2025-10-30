@@ -6,6 +6,12 @@ const config: CapacitorConfig = {
   webDir: 'src',
   server: {
     androidScheme: 'https'
+  },
+  plugins: {
+    ThermalPrinter: {
+      androidPackage: 'com.thermalprinter.test',
+      androidClassName: 'ThermalPrinterPlugin'
+    }
   }
 };
 
