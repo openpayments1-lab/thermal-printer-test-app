@@ -1,0 +1,26 @@
+﻿2025-10-30T21:01:23.9651985Z ##[group]Run actions/upload-artifact@v4
+2025-10-30T21:01:23.9652258Z with:
+2025-10-30T21:01:23.9652447Z   name: thermal-printer-test-debug
+2025-10-30T21:01:23.9652751Z   path: android/app/build/outputs/apk/debug/app-debug.apk
+2025-10-30T21:01:23.9653044Z   retention-days: 30
+2025-10-30T21:01:23.9653238Z   if-no-files-found: warn
+2025-10-30T21:01:23.9653436Z   compression-level: 6
+2025-10-30T21:01:23.9653623Z   overwrite: false
+2025-10-30T21:01:23.9653806Z   include-hidden-files: false
+2025-10-30T21:01:23.9654007Z env:
+2025-10-30T21:01:23.9654276Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.16-8/x64
+2025-10-30T21:01:23.9654711Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.16-8/x64
+2025-10-30T21:01:23.9655075Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2025-10-30T21:01:23.9655339Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2025-10-30T21:01:23.9655575Z ##[endgroup]
+2025-10-30T21:01:24.1864026Z With the provided path, there will be 1 file uploaded
+2025-10-30T21:01:24.1869952Z Artifact name is valid!
+2025-10-30T21:01:24.1871292Z Root directory input is valid!
+2025-10-30T21:01:24.4498841Z Beginning upload of artifact content to blob storage
+2025-10-30T21:01:25.3572962Z Uploaded bytes 3676545
+2025-10-30T21:01:25.4282569Z Finished uploading artifact content to blob storage!
+2025-10-30T21:01:25.4286545Z SHA256 digest of uploaded artifact zip is bb209766327086b1c491fb6699c39921059a3723734601484cb274435796a980
+2025-10-30T21:01:25.4287478Z Finalizing artifact upload
+2025-10-30T21:01:25.5667135Z Artifact thermal-printer-test-debug.zip successfully finalized. Artifact ID 4423130453
+2025-10-30T21:01:25.5668398Z Artifact thermal-printer-test-debug has been successfully uploaded! Final size is 3676545 bytes. Artifact ID is 4423130453
+2025-10-30T21:01:25.5674387Z Artifact download URL: https://github.com/openpayments1-lab/thermal-printer-test-app/actions/runs/18954827815/artifacts/4423130453

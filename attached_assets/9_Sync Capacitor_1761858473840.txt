@@ -1,0 +1,15 @@
+﻿2025-10-30T20:58:41.6282976Z ##[group]Run npx cap sync android
+2025-10-30T20:58:41.6283273Z [36;1mnpx cap sync android[0m
+2025-10-30T20:58:41.6316465Z shell: /usr/bin/bash -e {0}
+2025-10-30T20:58:41.6316692Z env:
+2025-10-30T20:58:41.6316973Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.16-8/x64
+2025-10-30T20:58:41.6317446Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.16-8/x64
+2025-10-30T20:58:41.6317814Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2025-10-30T20:58:41.6318093Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2025-10-30T20:58:41.6318346Z ##[endgroup]
+2025-10-30T20:58:42.2960725Z ✔ Copying web assets from src to android/app/src/main/assets/public in 5.15ms
+2025-10-30T20:58:42.2973075Z ✔ Creating capacitor.config.json in android/app/src/main/assets in 977.81μs
+2025-10-30T20:58:42.2999526Z ✔ copy android in 11.94ms
+2025-10-30T20:58:42.3016291Z ✔ Updating Android plugins in 883.54μs
+2025-10-30T20:58:42.3224207Z ✔ update android in 22.06ms
+2025-10-30T20:58:42.3243379Z [info] Sync finished in 0.036s

@@ -1,0 +1,15 @@
+﻿2025-10-30T20:58:21.7154907Z ##[group]Run npm run install-capacitor
+2025-10-30T20:58:21.7155259Z [36;1mnpm run install-capacitor[0m
+2025-10-30T20:58:21.7187951Z shell: /usr/bin/bash -e {0}
+2025-10-30T20:58:21.7188226Z ##[endgroup]
+2025-10-30T20:58:21.8290293Z 
+2025-10-30T20:58:21.8290835Z > thermal-printer-test-app@1.0.0 install-capacitor
+2025-10-30T20:58:21.8291504Z > npm install @capacitor/core @capacitor/cli @capacitor/android
+2025-10-30T20:58:21.8291774Z 
+2025-10-30T20:58:23.4817592Z 
+2025-10-30T20:58:23.4819104Z up to date, audited 143 packages in 2s
+2025-10-30T20:58:23.4819766Z 
+2025-10-30T20:58:23.4820142Z 25 packages are looking for funding
+2025-10-30T20:58:23.4820728Z   run `npm fund` for details
+2025-10-30T20:58:23.4828996Z 
+2025-10-30T20:58:23.4829478Z found 0 vulnerabilities

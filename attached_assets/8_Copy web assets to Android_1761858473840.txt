@@ -1,0 +1,12 @@
+﻿2025-10-30T20:58:40.9312425Z ##[group]Run npx cap copy android
+2025-10-30T20:58:40.9312720Z [36;1mnpx cap copy android[0m
+2025-10-30T20:58:40.9344777Z shell: /usr/bin/bash -e {0}
+2025-10-30T20:58:40.9345005Z env:
+2025-10-30T20:58:40.9345279Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.16-8/x64
+2025-10-30T20:58:40.9345758Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.16-8/x64
+2025-10-30T20:58:40.9346142Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2025-10-30T20:58:40.9346427Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2025-10-30T20:58:40.9346678Z ##[endgroup]
+2025-10-30T20:58:41.5970107Z ✔ Copying web assets from src to android/app/src/main/assets/public in 4.50ms
+2025-10-30T20:58:41.5981460Z ✔ Creating capacitor.config.json in android/app/src/main/assets in 885.69μs
+2025-10-30T20:58:41.6019177Z ✔ copy android in 12.30ms

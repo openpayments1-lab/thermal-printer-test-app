@@ -1,0 +1,22 @@
+﻿2025-10-30T20:58:17.4102698Z ##[group]Run actions/setup-node@v4
+2025-10-30T20:58:17.4102984Z with:
+2025-10-30T20:58:17.4103152Z   node-version: 20
+2025-10-30T20:58:17.4103324Z   cache: npm
+2025-10-30T20:58:17.4103493Z   always-auth: false
+2025-10-30T20:58:17.4103857Z   check-latest: false
+2025-10-30T20:58:17.4104166Z   token: ***
+2025-10-30T20:58:17.4104343Z ##[endgroup]
+2025-10-30T20:58:17.5791007Z Found in cache @ /opt/hostedtoolcache/node/20.19.5/x64
+2025-10-30T20:58:17.5797496Z ##[group]Environment details
+2025-10-30T20:58:17.8941369Z node: v20.19.5
+2025-10-30T20:58:17.8941701Z npm: 10.8.2
+2025-10-30T20:58:17.8941868Z yarn: 1.22.22
+2025-10-30T20:58:17.8942827Z ##[endgroup]
+2025-10-30T20:58:17.8966744Z [command]/opt/hostedtoolcache/node/20.19.5/x64/bin/npm config get cache
+2025-10-30T20:58:18.0170338Z /home/runner/.npm
+2025-10-30T20:58:18.3194657Z Cache hit for: node-cache-Linux-x64-npm-b53fd7615411b58c8b4fe79ec8c218225609178700c3442b5856ebcb699df7a3
+2025-10-30T20:58:19.5035863Z Received 11327592 of 11327592 (100.0%), 11.3 MBs/sec
+2025-10-30T20:58:19.5036633Z Cache Size: ~11 MB (11327592 B)
+2025-10-30T20:58:19.5062271Z [command]/usr/bin/tar -xf /home/runner/work/_temp/9ef78588-0438-41c6-99b1-446ea409b5e9/cache.tzst -P -C /home/runner/work/thermal-printer-test-app/thermal-printer-test-app --use-compress-program unzstd
+2025-10-30T20:58:19.5645350Z Cache restored successfully
+2025-10-30T20:58:19.5671126Z Cache restored from key: node-cache-Linux-x64-npm-b53fd7615411b58c8b4fe79ec8c218225609178700c3442b5856ebcb699df7a3
