@@ -6,18 +6,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+import com.printer.sdk.PrinterInstance;
+import com.printer.sdk.PrinterConstants;
 
 import java.util.HashMap;
 
@@ -28,9 +29,44 @@ public class UsbPrinterManager {
     private Activity activity;
     private UsbManager usbManager;
     private UsbDevice currentDevice;
-    private UsbDeviceConnection connection;
-    private UsbEndpoint endpointOut;
-    private UsbInterface usbInterface;
+    private PrinterInstance printerInstance;
+    private PluginCall pendingCall;
+    
+    private final Handler connectionHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            if (pendingCall == null) return;
+            
+            switch (msg.what) {
+                case PrinterConstants.Connect.SUCCESS:
+                    Log.d(TAG, "Printer connected successfully via VOLCORA SDK");
+                    JSObject successResult = new JSObject();
+                    successResult.put("success", true);
+                    successResult.put("deviceName", currentDevice != null ? currentDevice.getDeviceName() : "Unknown");
+                    successResult.put("message", "Connected to printer successfully");
+                    pendingCall.resolve(successResult);
+                    pendingCall = null;
+                    break;
+                    
+                case PrinterConstants.Connect.FAILED:
+                    Log.e(TAG, "Printer connection failed");
+                    pendingCall.reject("Failed to connect to printer");
+                    pendingCall = null;
+                    break;
+                    
+                case PrinterConstants.Connect.CLOSED:
+                    Log.d(TAG, "Printer connection closed");
+                    if (pendingCall != null) {
+                        JSObject closedResult = new JSObject();
+                        closedResult.put("success", true);
+                        closedResult.put("message", "Printer connection closed");
+                        pendingCall.resolve(closedResult);
+                        pendingCall = null;
+                    }
+                    break;
+            }
+        }
+    };
     
     private final BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {
         @Override
@@ -118,71 +154,43 @@ public class UsbPrinterManager {
                 return;
             }
             
-            connection = usbManager.openDevice(targetDevice);
-            if (connection == null) {
-                call.reject("Failed to open USB device connection");
-                return;
-            }
-            
-            if (targetDevice.getInterfaceCount() == 0) {
-                call.reject("No USB interfaces found");
-                return;
-            }
-            
-            usbInterface = targetDevice.getInterface(0);
-            
-            if (!connection.claimInterface(usbInterface, true)) {
-                call.reject("Failed to claim USB interface");
-                return;
-            }
-            
-            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
-                UsbEndpoint endpoint = usbInterface.getEndpoint(i);
-                if (endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK &&
-                    endpoint.getDirection() == UsbConstants.USB_DIR_OUT) {
-                    endpointOut = endpoint;
-                    break;
-                }
-            }
-            
-            if (endpointOut == null) {
-                call.reject("No bulk OUT endpoint found");
-                return;
-            }
-            
             currentDevice = targetDevice;
+            pendingCall = call;
             
-            JSObject result = new JSObject();
-            result.put("success", true);
-            result.put("deviceName", targetDevice.getDeviceName());
-            result.put("message", "Connected to printer successfully");
-            call.resolve(result);
+            printerInstance = PrinterInstance.getPrinterInstance(activity, targetDevice, connectionHandler);
             
-            Log.d(TAG, "Successfully connected to printer: " + targetDevice.getDeviceName());
+            boolean connected = printerInstance.openConnection();
+            
+            if (!connected) {
+                pendingCall = null;
+                call.reject("Failed to open connection to printer");
+                return;
+            }
+            
+            Log.d(TAG, "VOLCORA SDK: Attempting to connect to printer: " + targetDevice.getDeviceName());
+            
         } catch (Exception e) {
             Log.e(TAG, "Error connecting to printer", e);
+            pendingCall = null;
             call.reject("Failed to connect to printer: " + e.getMessage());
         }
     }
 
     public void disconnectPrinter(PluginCall call) {
         try {
-            if (connection != null && usbInterface != null) {
-                connection.releaseInterface(usbInterface);
-                connection.close();
+            if (printerInstance != null) {
+                printerInstance.closeConnection();
+                printerInstance = null;
             }
             
             currentDevice = null;
-            connection = null;
-            usbInterface = null;
-            endpointOut = null;
             
             JSObject result = new JSObject();
             result.put("success", true);
             result.put("message", "Disconnected from printer");
             call.resolve(result);
             
-            Log.d(TAG, "Disconnected from printer");
+            Log.d(TAG, "Disconnected from printer via VOLCORA SDK");
         } catch (Exception e) {
             Log.e(TAG, "Error disconnecting from printer", e);
             call.reject("Failed to disconnect from printer: " + e.getMessage());
@@ -191,27 +199,42 @@ public class UsbPrinterManager {
 
     public void printRawData(String base64Data, PluginCall call) {
         try {
-            if (connection == null || endpointOut == null) {
+            if (printerInstance == null) {
                 call.reject("Printer not connected");
                 return;
             }
             
             byte[] data = Base64.decode(base64Data, Base64.DEFAULT);
             
-            int transferred = connection.bulkTransfer(endpointOut, data, data.length, 5000);
+            int result = printerInstance.sendBytesData(data);
             
-            if (transferred < 0) {
-                call.reject("Failed to send data to printer");
+            if (result < 0) {
+                String errorMsg;
+                switch (result) {
+                    case -1:
+                        errorMsg = "Printer not initialized";
+                        break;
+                    case -2:
+                        errorMsg = "Data is empty or invalid";
+                        break;
+                    case -3:
+                        errorMsg = "Failed to send data to printer";
+                        break;
+                    default:
+                        errorMsg = "Unknown error: " + result;
+                        break;
+                }
+                call.reject(errorMsg);
                 return;
             }
             
-            JSObject result = new JSObject();
-            result.put("success", true);
-            result.put("bytesTransferred", transferred);
-            result.put("message", "Data sent to printer successfully");
-            call.resolve(result);
+            JSObject resultObj = new JSObject();
+            resultObj.put("success", true);
+            resultObj.put("bytesTransferred", result);
+            resultObj.put("message", "Data sent to printer successfully");
+            call.resolve(resultObj);
             
-            Log.d(TAG, "Sent " + transferred + " bytes to printer");
+            Log.d(TAG, "VOLCORA SDK: Sent " + result + " bytes to printer");
         } catch (Exception e) {
             Log.e(TAG, "Error printing data", e);
             call.reject("Failed to print data: " + e.getMessage());
