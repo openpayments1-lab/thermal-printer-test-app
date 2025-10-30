@@ -1,0 +1,208 @@
+Perfect 👍 — let’s walk through how to properly integrate the printer SDK (v5.7.2) into your existing Android app so your next app-debug.apk build will actually print.
+
+We’ll base this on the PrintDemozx.apk structure included in your SDK.
+
+🧱 1. Folder Setup in Your Project
+
+Inside your Android project:
+
+app/
+ ├── libs/
+ │    └── printersdkv5.7.2.jar
+ ├── src/
+ │    └── main/
+ │         ├── java/
+ │         ├── res/
+ │         ├── AndroidManifest.xml
+ │         └── jniLibs/
+ │              └── armeabi/
+ │                   └── libserial_port.so
+
+✅ Make sure:
+
+printersdkv5.7.2.jar is placed in app/libs/
+
+libserial_port.so is in app/src/main/jniLibs/armeabi/
+
+You’ve added the correct Bluetooth permissions (see below).
+
+⚙️ 2. Add Permissions (Android 12+ Compliant)
+
+In your AndroidManifest.xml:
+
+<uses-permission android:name="android.permission.BLUETOOTH" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+
+Also add the Bluetooth feature declaration (optional but recommended):
+
+<uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+🧩 3. Update build.gradle
+
+Add the JAR and set Java compatibility:
+
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation files('libs/printersdkv5.7.2.jar')
+}
+
+
+If you use ProGuard / R8:
+
+-keep class com.printer.sdk.** { *; }
+
+🧠 4. MainActivity.java (Example Integration)
+
+Below is a ready-to-use example you can drop into your project.
+It’s modeled directly after the SDK demo app, and works for Bluetooth printers.
+
+package com.yourapp;
+
+import android.Manifest;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+
+import com.printer.sdk.PrinterInstance;
+import com.printer.sdk.constant.PrinterConstants;
+
+public class MainActivity extends Activity {
+
+    private static final int REQUEST_BLUETOOTH_PERMISSIONS = 1;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice selectedDevice;
+    private PrinterInstance mPrinter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // Request permissions for Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_SCAN
+            }, REQUEST_BLUETOOTH_PERMISSIONS);
+        } else {
+            initPrinter();
+        }
+    }
+
+    private void initPrinter() {
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth not supported", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Pick a paired device (replace with actual printer MAC if known)
+        for (BluetoothDevice device : bluetoothAdapter.getBondedDevices()) {
+            if (device.getName().toLowerCase().contains("printer")) {
+                selectedDevice = device;
+                break;
+            }
+        }
+
+        if (selectedDevice == null) {
+            Toast.makeText(this, "No printer found", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Initialize printer connection
+        mPrinter = PrinterInstance.getPrinterInstance(selectedDevice, mHandler);
+        new Thread(() -> {
+            boolean connected = mPrinter.openConnection();
+            runOnUiThread(() ->
+                    Toast.makeText(this, connected ? "Connected" : "Connection Failed", Toast.LENGTH_SHORT).show()
+            );
+        }).start();
+    }
+
+    private final Handler mHandler = new Handler(msg -> {
+        switch (msg.what) {
+            case PrinterConstants.Connect.SUCCESS:
+                Toast.makeText(this, "Printer Connected", Toast.LENGTH_SHORT).show();
+                testPrint();
+                break;
+            case PrinterConstants.Connect.FAILED:
+                Toast.makeText(this, "Printer Connection Failed", Toast.LENGTH_SHORT).show();
+                break;
+            case PrinterConstants.Connect.CLOSED:
+                Toast.makeText(this, "Printer Disconnected", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return true;
+    });
+
+    private void testPrint() {
+        if (mPrinter == null) return;
+        mPrinter.initPrinter();
+        mPrinter.printText("=== Test Print Successful ===\n");
+        mPrinter.setPrinter(PrinterConstants.Command.PRINT_AND_WAKE_PAPER_BY_LINE, 2);
+        mPrinter.closeConnection();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initPrinter();
+            } else {
+                Toast.makeText(this, "Bluetooth permission denied", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+}
+
+🧪 5. Testing Workflow
+
+Pair your printer in Android Bluetooth settings.
+
+Install your rebuilt APK on the device.
+
+Launch the app — it will automatically connect and print === Test Print Successful ===.
+
+If you get:
+
+❌ “Connection failed” → verify MAC or printer power.
+
+❌ “Permission denied” → ensure you granted Bluetooth permissions.
+
+✅ “Printer Connected” + print output → SDK is integrated correctly.
+
+⚡ Optional Improvements
+
+Add a dropdown to choose which paired printer to connect to.
+
+Add retry logic for connection failure.
+
+For USB or WiFi printers, change:
+
+PrinterInstance.getPrinterInstance(context, usbDevice, handler);
+PrinterInstance.getPrinterInstance(ipAddress, 9100, handler);
+
+
+per SDK docs.
