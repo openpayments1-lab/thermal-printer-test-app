@@ -25,11 +25,17 @@ class ThermalPrinterApp {
     }
     
     checkCapacitorAvailable() {
-        if (typeof Capacitor !== 'undefined') {
+        if (this.isNativePluginAvailable()) {
             this.log('✓ Capacitor detected - Hardware features enabled', 'success');
         } else {
-            this.log('⚠ Running in browser - Hardware features unavailable', 'info');
+            this.log('⚠ Running in browser - Hardware features unavailable (simulation mode only)', 'info');
         }
+    }
+    
+    isNativePluginAvailable() {
+        return typeof Capacitor !== 'undefined' && 
+               Capacitor.Plugins && 
+               Capacitor.Plugins.ThermalPrinter;
     }
     
     setupEventListeners() {
@@ -78,7 +84,7 @@ class ThermalPrinterApp {
             try {
                 this.log('Scanning for USB printers...');
                 
-                if (typeof Capacitor !== 'undefined') {
+                if (this.isNativePluginAvailable()) {
                     const result = await Capacitor.Plugins.ThermalPrinter.listUsbDevices();
                     this.log(`Found ${result.devices.length} USB device(s)`);
                     
@@ -109,14 +115,14 @@ class ThermalPrinterApp {
                     this.log(`✓ ${connectResult.message}`, 'success');
                     this.log(`Device: ${device.manufacturerName || 'USB Printer'} ${device.productName || ''}`, 'info');
                 } else {
-                    this.log('✗ Capacitor not available. Please run on Android device.', 'error');
+                    this.log('✗ Native plugin not available. Build APK and install on Android device for hardware access.', 'error');
                 }
             } catch (error) {
                 this.log(`✗ Connection failed: ${error}`, 'error');
             }
         } else {
             try {
-                if (typeof Capacitor !== 'undefined') {
+                if (this.isNativePluginAvailable()) {
                     await Capacitor.Plugins.ThermalPrinter.disconnectPrinter();
                 }
                 
@@ -139,7 +145,7 @@ class ThermalPrinterApp {
             return false;
         }
         
-        if (typeof Capacitor !== 'undefined') {
+        if (this.isNativePluginAvailable()) {
             try {
                 const encoder = new TextEncoder();
                 const byteArray = encoder.encode(data);
@@ -161,7 +167,7 @@ class ThermalPrinterApp {
                 return false;
             }
         } else {
-            this.log('✗ Capacitor not available', 'error');
+            this.log('✗ Native plugin not available. Build APK and install on Android device.', 'error');
             return false;
         }
     }
@@ -405,7 +411,7 @@ LINE QUALITY TEST
         
         if (!this.displayActive) {
             try {
-                if (typeof Capacitor !== 'undefined') {
+                if (this.isNativePluginAvailable()) {
                     this.log('Checking for secondary display...');
                     
                     const displayCheck = await Capacitor.Plugins.ThermalPrinter.checkSecondaryDisplay();
@@ -435,7 +441,7 @@ LINE QUALITY TEST
             }
         } else {
             try {
-                if (typeof Capacitor !== 'undefined') {
+                if (this.isNativePluginAvailable()) {
                     await Capacitor.Plugins.ThermalPrinter.hideSecondaryDisplay();
                 }
                 
