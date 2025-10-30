@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Thermal Printer Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🖨️ Thermal Printer Test</h1>
+            <p class="subtitle">VOLCORA USB Receipt Printer</p>
+        </header>
+
+        <!-- Printer Connection Section -->
+        <section class="section">
+            <h2>Printer Connection</h2>
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <button id="connectBtn" class="btn btn-primary">Connect Printer</button>
+            </div>
+            <div class="info-box">
+                <p><strong>Printer Model:</strong> VOLCORA Thermal Receipt Printer</p>
+                <p><strong>Interface:</strong> USB (ESC/POS Commands)</p>
+                <p><strong>Paper Width:</strong> 80mm (72mm print width)</p>
+            </div>
+        </section>
+
+        <!-- Test Print Section -->
+        <section class="section">
+            <h2>Quick Test Print</h2>
+            <div class="button-group">
+                <button id="testPrintBtn" class="btn btn-secondary">
+                    Print Test Receipt
+                </button>
+                <button id="selfTestBtn" class="btn btn-secondary">
+                    Printer Self-Test
+                </button>
+            </div>
+        </section>
+
+        <!-- Receipt Builder Section -->
+        <section class="section">
+            <h2>Receipt Builder</h2>
+            <div class="receipt-builder">
+                <div class="add-item-form">
+                    <input type="text" id="itemName" placeholder="Item name" class="input">
+                    <input type="number" id="itemPrice" placeholder="Price" step="0.01" class="input input-price">
+                    <input type="number" id="itemQty" placeholder="Qty" value="1" min="1" class="input input-qty">
+                    <button id="addItemBtn" class="btn btn-add">Add Item</button>
+                </div>
+                
+                <div class="cart" id="cartItems">
+                    <!-- Cart items will be added here -->
+                </div>
+                
+                <div class="cart-total">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Tax (10%):</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="total-row total-final">
+                        <span>Total:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="previewBtn" class="btn btn-secondary">Preview Receipt</button>
+                    <button id="printReceiptBtn" class="btn btn-primary">Print Receipt</button>
+                    <button id="clearCartBtn" class="btn btn-outline">Clear Cart</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dual Screen Section -->
+        <section class="section">
+            <h2>Customer Display (Dual Screen)</h2>
+            <div class="dual-screen-controls">
+                <button id="toggleDisplayBtn" class="btn btn-secondary">
+                    Toggle Customer Display
+                </button>
+                <div class="info-box">
+                    <p>Enable customer-facing display with rotating photo slideshow (3-second intervals)</p>
+                </div>
+            </div>
+            <div id="customerDisplay" class="customer-display" style="display: none;">
+                <div class="slideshow">
+                    <img id="slideshowImage" src="" alt="Product Display">
+                </div>
+            </div>
+        </section>
+
+        <!-- Receipt Preview Modal -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Receipt Preview</h2>
+                    <button id="closePreview" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <pre id="previewContent" class="receipt-preview"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button id="printFromPreview" class="btn btn-primary">Print Now</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Section -->
+        <section class="section">
+            <h2>Activity Log</h2>
+            <div id="logOutput" class="log-output"></div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
