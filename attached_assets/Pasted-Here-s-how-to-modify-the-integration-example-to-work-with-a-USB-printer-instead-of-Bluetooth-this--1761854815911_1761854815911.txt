@@ -1,0 +1,157 @@
+Here’s how to modify the integration example to work with a USB printer instead of Bluetooth — this version directly follows the PrinterInstance USB API from your SDK v5.7.2 manual.
+
+⚙️ Updated Code (USB Printer Version)
+package com.yourapp;
+
+import android.app.Activity;
+import android.content.Context;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.widget.Toast;
+
+import com.printer.sdk.PrinterInstance;
+import com.printer.sdk.constant.PrinterConstants;
+
+import java.util.HashMap;
+import java.util.Iterator;
+
+public class MainActivity extends Activity {
+
+    private UsbManager usbManager;
+    private UsbDevice usbDevice;
+    private PrinterInstance mPrinter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+
+        detectUsbPrinter();
+    }
+
+    private void detectUsbPrinter() {
+        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+
+        while (deviceIterator.hasNext()) {
+            UsbDevice device = deviceIterator.next();
+            int vendorId = device.getVendorId();
+            int productId = device.getProductId();
+
+            // 🖨️ Adjust vendor/product IDs based on your printer’s info
+            if (vendorId != 0 && productId != 0) {
+                usbDevice = device;
+                break;
+            }
+        }
+
+        if (usbDevice == null) {
+            Toast.makeText(this, "No USB printer detected", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        openPrinterConnection();
+    }
+
+    private void openPrinterConnection() {
+        new Thread(() -> {
+            try {
+                mPrinter = PrinterInstance.getPrinterInstance(MainActivity.this, usbDevice, mHandler);
+                boolean connected = mPrinter.openConnection();
+
+                runOnUiThread(() ->
+                        Toast.makeText(this, connected ? "USB Printer Connected" : "Connection Failed", Toast.LENGTH_SHORT).show()
+                );
+
+                if (connected) {
+                    testPrint();
+                }
+
+            } catch (Exception e) {
+                runOnUiThread(() ->
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        }).start();
+    }
+
+    private final Handler mHandler = new Handler(msg -> {
+        switch (msg.what) {
+            case PrinterConstants.Connect.SUCCESS:
+                Toast.makeText(this, "Printer Connected", Toast.LENGTH_SHORT).show();
+                break;
+            case PrinterConstants.Connect.FAILED:
+                Toast.makeText(this, "Printer Connection Failed", Toast.LENGTH_SHORT).show();
+                break;
+            case PrinterConstants.Connect.CLOSED:
+                Toast.makeText(this, "Printer Disconnected", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return true;
+    });
+
+    private void testPrint() {
+        try {
+            mPrinter.initPrinter();
+            mPrinter.setPrinter(PrinterConstants.Command.ALIGN, PrinterConstants.Command.ALIGN_CENTER);
+            mPrinter.printText("=== USB Printer Test ===\n");
+            mPrinter.printText("Connection successful!\n");
+            mPrinter.setPrinter(PrinterConstants.Command.PRINT_AND_WAKE_PAPER_BY_LINE, 2);
+            mPrinter.closeConnection();
+        } catch (Exception e) {
+            runOnUiThread(() ->
+                    Toast.makeText(this, "Print Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
+            );
+        }
+    }
+}
+
+🧾 Manifest Permissions
+
+Add these to AndroidManifest.xml:
+
+<uses-feature android:name="android.hardware.usb.host" />
+<uses-permission android:name="android.permission.USB_PERMISSION" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+
+Then register the USB device filter:
+
+<application ...>
+    <activity android:name=".MainActivity">
+        <intent-filter>
+            <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+        </intent-filter>
+        <meta-data
+            android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+            android:resource="@xml/device_filter" />
+    </activity>
+</application>
+
+res/xml/device_filter.xml
+
+Create this file if it doesn’t exist:
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <usb-device vendor-id="1155" product-id="22304" /> <!-- replace with your printer's IDs -->
+</resources>
+
+🧩 Notes
+
+If your printer is connected but not printing, verify the Vendor ID / Product ID in device_filter.xml matches your model.
+
+You can find these IDs using adb logcat or by listing connected devices in code:
+
+Log.i("USB", "VendorID: " + device.getVendorId() + ", ProductID: " + device.getProductId());
+
+
+If your SDK demo (PrintDemozx.apk) prints fine via USB, the above code will work as long as:
+
+libserial_port.so is in jniLibs/armeabi/
+
+printersdkv5.7.2.jar is linked correctly
