@@ -1,3 +1,8 @@
+// Manual plugin registration for inline Capacitor plugin
+if (typeof Capacitor !== 'undefined' && Capacitor.registerPlugin) {
+    window.ThermalPrinter = Capacitor.registerPlugin('ThermalPrinter');
+}
+
 class ThermalPrinterApp {
     constructor() {
         this.isConnected = false;
@@ -33,9 +38,14 @@ class ThermalPrinterApp {
     }
     
     isNativePluginAvailable() {
+        // Check both global ThermalPrinter and Capacitor.Plugins.ThermalPrinter
         return typeof Capacitor !== 'undefined' && 
-               Capacitor.Plugins && 
-               Capacitor.Plugins.ThermalPrinter;
+               (window.ThermalPrinter || (Capacitor.Plugins && Capacitor.Plugins.ThermalPrinter));
+    }
+    
+    getPlugin() {
+        // Return the plugin from either location
+        return window.ThermalPrinter || (typeof Capacitor !== 'undefined' && Capacitor.Plugins && Capacitor.Plugins.ThermalPrinter);
     }
     
     setupEventListeners() {
@@ -85,7 +95,8 @@ class ThermalPrinterApp {
                 this.log('Scanning for USB printers...');
                 
                 if (this.isNativePluginAvailable()) {
-                    const result = await Capacitor.Plugins.ThermalPrinter.listUsbDevices();
+                    const plugin = this.getPlugin();
+                    const result = await plugin.listUsbDevices();
                     this.log(`Found ${result.devices.length} USB device(s)`);
                     
                     if (result.devices.length === 0) {
@@ -102,7 +113,7 @@ class ThermalPrinterApp {
                     
                     this.log(`Connecting to ${device.manufacturerName || 'USB'} printer...`);
                     
-                    const connectResult = await Capacitor.Plugins.ThermalPrinter.connectToPrinter({
+                    const connectResult = await plugin.connectToPrinter({
                         vendorId: device.vendorId,
                         productId: device.productId
                     });
@@ -123,7 +134,8 @@ class ThermalPrinterApp {
         } else {
             try {
                 if (this.isNativePluginAvailable()) {
-                    await Capacitor.Plugins.ThermalPrinter.disconnectPrinter();
+                    const plugin = this.getPlugin();
+                    await plugin.disconnectPrinter();
                 }
                 
                 this.isConnected = false;
@@ -156,7 +168,8 @@ class ThermalPrinterApp {
                 }
                 const base64Data = btoa(binary);
                 
-                const result = await Capacitor.Plugins.ThermalPrinter.printRawData({
+                const plugin = this.getPlugin();
+                const result = await plugin.printRawData({
                     data: base64Data
                 });
                 
@@ -414,7 +427,8 @@ LINE QUALITY TEST
                 if (this.isNativePluginAvailable()) {
                     this.log('Checking for secondary display...');
                     
-                    const displayCheck = await Capacitor.Plugins.ThermalPrinter.checkSecondaryDisplay();
+                    const plugin = this.getPlugin();
+                    const displayCheck = await plugin.checkSecondaryDisplay();
                     
                     if (!displayCheck.hasSecondaryDisplay) {
                         this.log('✗ No secondary display detected. Connect a customer display.', 'error');
@@ -426,7 +440,7 @@ LINE QUALITY TEST
                     this.log(`✓ Secondary display found: ${displayCheck.secondaryDisplayInfo.name}`, 'success');
                     
                     const html = this.generateCustomerDisplayHTML();
-                    await Capacitor.Plugins.ThermalPrinter.showOnSecondaryDisplay({ html });
+                    await plugin.showOnSecondaryDisplay({ html });
                     
                     this.displayActive = true;
                     btn.textContent = 'Hide Customer Display';
@@ -442,7 +456,8 @@ LINE QUALITY TEST
         } else {
             try {
                 if (this.isNativePluginAvailable()) {
-                    await Capacitor.Plugins.ThermalPrinter.hideSecondaryDisplay();
+                    const plugin = this.getPlugin();
+                    await plugin.hideSecondaryDisplay();
                 }
                 
                 this.displayActive = false;
