@@ -19,3 +19,11 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep VOLCORA Printer SDK classes
+-keep class com.printer.sdk.** { *; }
+
+# Keep Capacitor plugin classes
+-keep class com.thermalprinter.test.ThermalPrinterPlugin { *; }
+-keep class com.thermalprinter.test.UsbPrinterManager { *; }
+-keep class com.thermalprinter.test.DualScreenManager { *; }
