@@ -1,0 +1,83 @@
+1. No Printer SDK Classes Bundled
+
+There are no classes under com.printer.sdk in your build.
+This means the printersdkv5.7.2.jar library was not included at compile time — so all SDK calls (PrinterInstance, Command, PAlign, etc.) are missing.
+Without those, the print function can’t be invoked, even if your app UI triggers a “Print” action.
+
+⚠️ 2. Missing Bluetooth / USB Printing Logic
+
+There are no references to:
+
+PrinterInstance.getPrinterInstance(...)
+openConnection()
+printText()
+printImage()
+
+
+These are the core API methods from the SDK for Bluetooth, WiFi, or USB printing
+
+android-sdk development manual …
+
+.
+This confirms your build never connects to or communicates with the printer.
+
+🧾 3. Manifest Omissions
+
+Your app manifest does not declare Android 12+ Bluetooth permissions such as:
+
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+
+
+These are now required on Android 12 and newer for any Bluetooth printer pairing or communication to succeed.
+
+📦 4. No Native Library
+
+There’s no libserial_port.so bundled under /jniLibs/armeabi/ — required for USB or serial printing per the SDK manual
+
+android-sdk development manual …
+
+.
+
+✅ 5. What You Need to Do
+
+Include the Printer SDK JAR
+
+Place printersdkv5.7.2.jar in app/libs/.
+
+Add this to your Gradle:
+
+implementation files('libs/printersdkv5.7.2.jar')
+
+
+If you’re using ProGuard or R8:
+
+-keep class com.printer.sdk.** { *; }
+
+
+Add Permissions
+
+<uses-permission android:name="android.permission.BLUETOOTH"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+
+Add Native Libraries
+
+Copy /PrintDemo/libs/armeabi/libserial_port.so → app/src/main/jniLibs/armeabi/
+
+Rebuild With Proper Calls
+Add connection and print logic:
+
+PrinterInstance mPrinter = PrinterInstance.getPrinterInstance(device, handler);
+if (mPrinter.openConnection()) {
+    mPrinter.printText("Test Print\n");
+    mPrinter.closeConnection();
+}
+
+
+Test with Demo (PrintDemozx.apk)
+
+If the demo prints successfully but your app doesn’t, it’s 100% an integration issue (not hardware).
