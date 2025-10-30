@@ -2,14 +2,30 @@
 
 Welcome to your Thermal Printer Test App!
 
+## ⚠️ Quick Status Check
+
+**What Works Now:**
+- ✅ Complete UI for printer testing
+- ✅ Receipt builder with cart management
+- ✅ Receipt preview and formatting
+- ✅ ESC/POS command generation
+- ✅ Customer display simulation
+
+**What Needs Work:**
+- ⚠️ Real USB printing requires native Android plugin (currently simulation only)
+
+**📖 Read IMPLEMENTATION_STATUS.md for full technical details**
+
 ## What This App Does
 
 This is a standalone Android application designed to test your VOLCORA USB thermal receipt printer. It helps you:
 
-1. **Verify Hardware** - Confirm your printer works with Android
-2. **Test USB Connection** - Check USB OTG connectivity
-3. **Print Receipts** - Build and print formatted receipts
-4. **Dual Screen** - Test customer-facing display functionality
+1. **Design Receipts** - Build and preview formatted receipts
+2. **Test ESC/POS** - Generate correct thermal printer commands
+3. **UI Prototype** - Complete mockup of printer functionality
+4. **Plan Integration** - Demonstrate intended workflow
+
+**Note**: For real USB printing on Android, you'll need to add a native Capacitor plugin (see IMPLEMENTATION_STATUS.md)
 
 ## Quick Decision Tree
 
@@ -18,8 +34,8 @@ This is a standalone Android application designed to test your VOLCORA USB therm
 → Open http://localhost:5000
 
 ### I want to test with a real printer
-→ See QUICKSTART.md for Android build instructions
-→ You'll need Android Studio installed
+→ **Not yet possible** - requires native USB plugin first
+→ See IMPLEMENTATION_STATUS.md for implementation path
 
 ### I just want to understand the code
 → Check out:
@@ -42,48 +58,57 @@ npm run dev
 
 ## App Features at a Glance
 
-✅ **Printer Connection**
-- USB device detection
-- Status indicators
-- Connect/disconnect controls
+✅ **UI Prototype (Working Now)**
+- Complete interface for printer testing
+- Connection status simulation
+- All buttons and controls functional
 
-✅ **Receipt Builder**
-- Add items with price/quantity
+✅ **Receipt Builder (Working Now)**
+- Add/remove items with price/quantity
 - Auto-calculate tax and totals
-- Print preview
+- Live receipt preview
 
-✅ **Test Functions**
-- Quick test print
-- Printer self-test
-- ESC/POS command testing
+✅ **ESC/POS Generation (Working Now)**
+- Correct thermal printer commands
+- Test receipt formatting
+- Command logging for validation
 
-✅ **Customer Display**
-- Toggle dual screen
-- Rotating slideshow
+⚠️ **USB Printing (Needs Plugin)**
+- Currently runs in simulation mode
+- Logs commands to console
+- Requires native Capacitor plugin for hardware
+
+✅ **Customer Display (Simulation)**
+- In-app slideshow display
+- Rotating product images
 - 3-second intervals
 
-## Printer Compatibility
+## Intended Printer Compatibility
 
 This app is designed for:
 - **Primary**: VOLCORA Thermal Receipt Printer
 - **Compatible**: Any ESC/POS thermal printer
-- **Interface**: USB (also works with Serial/Ethernet/Bluetooth models)
+- **Interface**: USB (with native plugin - not yet implemented)
 - **Paper**: 80mm thermal paper
+
+**Note**: Currently generates correct ESC/POS commands, but hardware integration requires native plugin (see IMPLEMENTATION_STATUS.md)
 
 ## Next Steps
 
-1. **Browser Test**: Run `npm run dev` to test the interface
-2. **Read Docs**: Check README.md for full details
-3. **Android Build**: Follow QUICKSTART.md for APK deployment
-4. **Hardware Test**: Connect real printer and verify functionality
+1. **Browser Test**: Run `npm run dev` to test the interface ← Start here!
+2. **Read Status**: Check IMPLEMENTATION_STATUS.md to understand limitations
+3. **Read Docs**: Check README.md for full details
+4. **Android Build** (optional): Follow QUICKSTART.md for APK
+5. **Hardware Integration**: Implement USB plugin per IMPLEMENTATION_STATUS.md
 
 ## File Guide
 
 | File | Purpose |
 |------|---------|
 | `START_HERE.md` | You are here! |
-| `QUICKSTART.md` | Fast setup instructions |
+| `IMPLEMENTATION_STATUS.md` | ⚠️ **READ THIS** - USB limitation & solution |
 | `README.md` | Complete documentation |
+| `QUICKSTART.md` | Fast setup instructions |
 | `src/index.html` | User interface |
 | `src/app.js` | Application logic |
 | `package.json` | Dependencies & scripts |

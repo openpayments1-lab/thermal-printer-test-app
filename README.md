@@ -2,12 +2,21 @@
 
 A standalone Android application built with Capacitor to test USB thermal printer connectivity and dual screen display functionality.
 
+## ⚠️ Important Notice
+
+**Current Status**: This app provides a **fully functional UI prototype and receipt builder** with ESC/POS command generation. However, USB printer communication requires a native Capacitor plugin to work on Android hardware.
+
+- ✅ **Works Now**: Complete UI, receipt builder, preview, ESC/POS logic
+- ⚠️ **Needs Plugin**: Real USB printing (simulation mode only in current state)
+
+**See IMPLEMENTATION_STATUS.md for full technical details and implementation path.**
+
 ## Overview
 
 This app is designed to test the VOLCORA thermal receipt printer with:
-- USB connectivity via ESC/POS commands
+- USB connectivity via ESC/POS commands (requires native plugin for hardware)
 - Receipt building and printing
-- Customer-facing dual screen display
+- Customer-facing display simulation
 - Print preview functionality
 
 ## Printer Specifications
@@ -22,11 +31,11 @@ This app is designed to test the VOLCORA thermal receipt printer with:
 
 ## Features
 
-### ✅ USB Printer Connection
+### ⚠️ USB Printer Connection (Simulation Mode)
 - Connect/disconnect button
 - Real-time status indicator
-- USB device detection (when deployed to Android)
-- Simulation mode for browser testing
+- ESC/POS command generation
+- **Note**: Requires native plugin for real USB hardware (see IMPLEMENTATION_STATUS.md)
 
 ### ✅ Test Print Functions
 - Quick test receipt printing
@@ -40,11 +49,11 @@ This app is designed to test the VOLCORA thermal receipt printer with:
 - Clear cart function
 - Live preview before printing
 
-### ✅ Dual Screen Display
-- Toggle customer-facing display
+### ✅ Customer Display Simulation
+- Toggle in-app customer display
 - Rotating photo slideshow
 - 3-second interval between images
-- Product showcase capability
+- Product showcase simulation (not hardware dual-display)
 
 ### ✅ Activity Log
 - Real-time logging of all operations
@@ -55,8 +64,8 @@ This app is designed to test the VOLCORA thermal receipt printer with:
 
 ### Prerequisites
 - Node.js 18+ installed
-- Android Studio (for building APK)
-- USB thermal printer (VOLCORA or compatible)
+- Android Studio (for building APK - optional)
+- **Note**: USB thermal printer support requires native plugin (not yet implemented)
 
 ### Installation
 
@@ -101,8 +110,16 @@ This app is designed to test the VOLCORA thermal receipt printer with:
 2. Test the UI and receipt generation
 3. Note: USB connection will be simulated in browser
 
-### Android Device Testing (Real Hardware)
+### Android Device Testing (Future - Requires Plugin)
 
+**Current Status**: The app will build and run on Android, but USB printing is simulated only.
+
+**To enable real USB printing**, you must first:
+1. Implement a native Capacitor plugin for USB Host API (see IMPLEMENTATION_STATUS.md)
+2. Replace WebUSB calls with native plugin calls
+3. Test with real VOLCORA printer hardware
+
+**Once plugin is implemented:**
 1. Build the APK using Android Studio
 2. Install on your Android device
 3. Connect USB thermal printer via OTG cable
@@ -110,34 +127,39 @@ This app is designed to test the VOLCORA thermal receipt printer with:
 5. Grant USB permissions when prompted
 6. Test printing functionality
 
-### Printing a Receipt
+### Building and Previewing a Receipt
 
-1. Click "Connect Printer" and grant permissions
-2. Add items using the receipt builder:
+1. Add items using the receipt builder:
    - Enter item name
    - Enter price
    - Set quantity (default: 1)
    - Click "Add Item"
-3. Review your cart
-4. Click "Preview Receipt" to see formatted output
-5. Click "Print Receipt" to send to printer
+2. Review your cart
+3. Click "Preview Receipt" to see formatted output
+4. Click "Print Receipt" to see ESC/POS commands logged
 
-### Testing Print Quality
+**Note**: Actual printing requires native USB plugin (see IMPLEMENTATION_STATUS.md)
 
-1. Click "Print Test Receipt" for a comprehensive test
+### Testing Receipt Generation
+
+1. Click "Print Test Receipt" to generate a test receipt
 2. The test receipt includes:
    - Header and timestamp
    - Printer information
    - Character set test
    - Line quality patterns
-3. Click "Printer Self-Test" for hardware diagnostics
+3. ESC/POS commands are generated and logged (simulation mode)
 
-### Dual Screen Display
+**Note**: For hardware diagnostics, requires native plugin integration
+
+### Customer Display Simulation
 
 1. Click "Toggle Customer Display"
-2. A slideshow will begin showing product images
+2. An in-app slideshow will begin showing product images
 3. Images rotate every 3 seconds
 4. Click again to hide the display
+
+**Note**: This is an in-app simulation, not hardware dual-display
 
 ## Project Structure
 
@@ -155,27 +177,24 @@ thermal-printer-test-app/
 
 ## Troubleshooting
 
-### Printer Won't Connect
-- Ensure USB OTG cable is properly connected
-- Check that printer is powered on
-- Grant USB permissions when prompted
-- Try disconnecting and reconnecting
+### USB Printing Doesn't Work
+**This is expected behavior** - Real USB printing requires a native Capacitor plugin that is not yet implemented. See IMPLEMENTATION_STATUS.md for implementation options.
 
-### Nothing Prints
-- Verify printer has paper loaded
-- Check printer error LEDs
-- Ensure printer is in ready state (not paper out)
-- Try the self-test function
+**Current behavior:**
+- "Connect Printer" runs in simulation mode
+- Print commands are logged to console
+- No data sent to physical hardware
 
-### ESC/POS Commands Not Working
-- Verify printer supports ESC/POS (VOLCORA does)
-- Check printer documentation for specific commands
-- Some printers require specific initialization sequences
+### App Crashes on Android
+- Check Android Studio logcat for errors
+- Verify Capacitor configuration is correct
+- Ensure Android permissions are granted
 
-### Browser Mode Limitations
-- USB API not available in regular browsers
-- Use for UI testing only
-- Deploy to Android for actual USB printing
+### Browser Mode
+- USB simulation only
+- Perfect for UI/UX testing
+- ESC/POS commands logged to console
+- No physical printer interaction possible
 
 ## Technical Details
 
@@ -186,26 +205,42 @@ thermal-printer-test-app/
 - Text formatting and line feeds
 - Standard character encoding
 
-### USB Communication
+### USB Communication (Requires Plugin)
 
-The app uses the WebUSB API (on Android via Capacitor) to communicate with the printer:
+**Current Implementation**: Uses WebUSB API (browser-only, not available in Capacitor WebView)
 
-1. Request USB device access
-2. Open device connection
-3. Claim interface
-4. Transfer data via bulk transfer
-5. Close connection when done
+**Required for Hardware**: Native Capacitor plugin using Android USB Host API
+
+The intended USB communication flow:
+1. Request USB device access (via native plugin)
+2. Enumerate devices and find printer
+3. Open device connection
+4. Claim appropriate interface
+5. Transfer ESC/POS data via bulk transfer
+6. Close connection when done
+
+**See IMPLEMENTATION_STATUS.md** for detailed implementation requirements.
 
 ### Capacitor Integration
 
-Capacitor bridges web technologies to native Android:
-- WebUSB API for USB communication
-- Native permissions handling
-- Hardware access through web standards
+This app uses Capacitor to bridge web technologies to native Android.
+
+**Currently working:**
+- Web-based UI in Android WebView
+- Standard JavaScript functionality
+
+**Requires native plugin:**
+- USB Host API access
+- Hardware printer communication
 
 ## Next Steps
 
-### Potential Enhancements
+### Required for Production
+1. **Implement USB Plugin** - Create or integrate Capacitor plugin for USB Host API (see IMPLEMENTATION_STATUS.md)
+2. **Test with Hardware** - Validate with real VOLCORA printer
+3. **Update USB Logic** - Replace WebUSB calls with native plugin
+
+### Potential Future Enhancements
 - Barcode printing (QR codes, UPC, EAN)
 - Cash drawer trigger
 - Custom logo/header images
