@@ -1,0 +1,6 @@
+[
+  {
+    "pkg": "com.thermalprinter.test",
+    "classpath": "com.thermalprinter.test.ThermalPrinterPlugin"
+  }
+]
