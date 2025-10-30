@@ -1,0 +1,128 @@
+Got it — I reviewed your uploaded SDK manual (Android-SDK Development Manual v1.7), JAR (printersdkv5.7.2.jar), demo app (PrintDemozx.apk), and your app-debug.apk.
+
+Here’s a breakdown of why your current app-debug.apk is not printing from your Android device, and how to fix it based on the SDK documentation and demo reference.
+
+🔍 Root Cause Possibilities
+
+Printer not connected properly
+
+The SDK requires an active connection before printing:
+
+PrinterInstance mPrinter = PrinterInstance.getPrinterInstance(device, handler);
+mPrinter.openConnection();
+
+
+If you skip openConnection() or don’t handle Bluetooth permissions properly (Android 12+), printing will silently fail.
+
+Incorrect permissions on Android 10+
+
+Add these to your AndroidManifest.xml:
+
+<uses-permission android:name="android.permission.BLUETOOTH"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+
+Without runtime permission requests (especially for Bluetooth connect & location), the SDK will not pair or open a printer socket.
+
+Missing .so library (for serial/USB printers)
+
+The SDK requires libserial_port.so in /app/src/main/jniLibs/armeabi/.
+
+If your app is missing that file, it can’t open a serial/USB connection.
+
+Incorrect Printer SDK version linkage
+
+You must include the JAR in your libs/ folder and declare it in Gradle:
+
+implementation files('libs/printersdkv5.7.2.jar')
+
+
+If you used a newer Android Gradle plugin, also enable multiDex and Java 8 compatibility:
+
+android {
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+
+No bitmap conversion or unsupported format
+
+The printer only supports binary or grayscale bitmaps, not color.
+
+Convert using:
+
+BitmapConvertor convertor = new BitmapConvertor();
+Bitmap bw = convertor.convertGreyImgByFloyd(colorBitmap);
+mPrinter.printImage(bw, PAlign.CENTER, 0, false);
+
+
+Print buffer not flushed
+
+If you don’t include \n or mPrinter.setPrinter(Command.PRINT_AND_WAKE_PAPER_BY_LINE, 2); after sending text, nothing prints.
+
+✅ Step-by-Step Fix
+
+Test with provided demo (PrintDemozx.apk)
+
+Install it and verify that your device can print — if that demo prints successfully, your issue is in your app’s implementation.
+
+In your app:
+
+Ensure you initialize and connect before printing:
+
+PrinterInstance mPrinter = PrinterInstance.getPrinterInstance(mBluetoothDevice, mHandler);
+mPrinter.openConnection();
+
+
+Wait for Connect.SUCCESS message before sending print commands.
+
+After connection:
+
+mPrinter.initPrinter();
+mPrinter.setPrinter(Command.ALIGN, Command.ALIGN_CENTER);
+mPrinter.printText("Test Print\n");
+mPrinter.setPrinter(Command.PRINT_AND_WAKE_PAPER_BY_LINE, 2);
+mPrinter.closeConnection();
+
+
+If nothing prints:
+
+Check the printer’s status:
+
+int status = mPrinter.getCurrentStatus();
+Log.i("Printer", "Status: " + status);
+
+
+0 = normal
+
+-1 = comms error
+
+-2 = paper out
+
+-4 = cover open
+
+On Android 12–14:
+Use the new Bluetooth permission flow:
+
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    requestPermissions(new String[]{
+        Manifest.permission.BLUETOOTH_CONNECT,
+        Manifest.permission.BLUETOOTH_SCAN
+    }, 1);
+}
+
+🧩 Debug Checklist
+Check	Description	Status
+✅ SDK JAR linked	printersdkv5.7.2.jar in libs/ and in Gradle	
+✅ Bluetooth permission	Manifest + runtime prompt	
+✅ Connection opened	mPrinter.openConnection() returns true	
+✅ Status normal	getCurrentStatus() == 0	
+✅ Bitmap converted	Used BitmapConvertor	
+✅ Flush linefeed	Added \n or wake_paper_by_line

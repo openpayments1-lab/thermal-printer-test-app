@@ -1,0 +1,84 @@
+Key Findings
+
+No PrinterInstance or SDK integration calls detected
+
+The APK does not reference any PrinterInstance, openConnection(), printText(), or printImage() methods from the printersdkv5.7.2.jar library.
+
+This means your current build isn’t actually communicating with the printer SDK — it either:
+
+wasn’t linked at compile time, or
+
+is being stripped by ProGuard / R8 during the build process.
+
+Missing Bluetooth / USB print connection logic
+
+The compiled app doesn’t contain Bluetooth connect, USB connect, or handler logic for printing success/failure events.
+
+The sample logic from the SDK (which should exist) looks like this:
+
+PrinterInstance mPrinter = PrinterInstance.getPrinterInstance(device, handler);
+mPrinter.openConnection();
+mPrinter.printText("Hello World\n");
+mPrinter.closeConnection();
+
+
+None of these appear in your APK.
+
+Manifest permissions are incomplete
+
+The manifest extracted from your APK does not declare modern Bluetooth permissions for Android 12+ (BLUETOOTH_CONNECT, BLUETOOTH_SCAN).
+
+Without these, your app cannot discover or connect to the printer on recent Android versions.
+
+No JNI or .so files
+
+The app package doesn’t include the required libserial_port.so in /jniLibs/armeabi/.
+
+If your printer connects via USB or serial, the connection will silently fail.
+
+🧩 Why It’s Not Printing
+
+Your APK doesn’t actually invoke or package the print SDK at runtime — so while it may contain UI elements related to printing, the print command never reaches the printer hardware layer.
+
+✅ Fix Recommendations
+
+Verify SDK Integration
+
+In Android Studio, confirm that your app build.gradle includes:
+
+implementation files('libs/printersdkv5.7.2.jar')
+
+
+Rebuild your app and ensure the JAR isn’t excluded by ProGuard:
+
+-keep class com.printer.sdk.** { *; }
+
+
+Add Required Permissions
+
+<uses-permission android:name="android.permission.BLUETOOTH"/>
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+
+Include Native Library (if needed)
+
+Copy libserial_port.so from the SDK demo (PrintDemo/libs/armeabi/) into your project’s jniLibs/armeabi/ folder.
+
+Implement a Connection Test
+
+Use the same structure as the SDK sample:
+
+PrinterInstance mPrinter = PrinterInstance.getPrinterInstance(device, handler);
+if (mPrinter.openConnection()) {
+    mPrinter.printText("Test Print\n");
+    mPrinter.closeConnection();
+}
+
+
+Compare with Demo (PrintDemozx.apk)
+
+Install PrintDemozx.apk on your device.
+If it prints correctly, your device and printer hardware are fine — the issue lies entirely in your app-debug.apk integration.

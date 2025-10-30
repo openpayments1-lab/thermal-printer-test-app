@@ -40,6 +40,12 @@ public class UsbPrinterManager {
             switch (msg.what) {
                 case PrinterConstants.Connect.SUCCESS:
                     Log.d(TAG, "Printer connected successfully via VOLCORA SDK");
+                    
+                    if (printerInstance != null) {
+                        printerInstance.initPrinter();
+                        Log.d(TAG, "Printer initialized");
+                    }
+                    
                     JSObject successResult = new JSObject();
                     successResult.put("success", true);
                     successResult.put("deviceName", currentDevice != null ? currentDevice.getDeviceName() : "Unknown");
