@@ -8,6 +8,8 @@ import android.hardware.display.DisplayManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.MotionEvent;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.widget.LinearLayout;
@@ -118,6 +120,16 @@ public class DualScreenManager {
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
+            // Disable touch input on the customer display window
+            // This prevents the customer display from capturing touch events
+            if (getWindow() != null) {
+                getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                );
+                Log.d(TAG, "Customer display set to non-touchable (view-only mode)");
+            }
+
             LinearLayout layout = new LinearLayout(getContext());
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.setBackgroundColor(Color.WHITE);
@@ -125,6 +137,9 @@ public class DualScreenManager {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT
             ));
+
+            // Disable touch on the layout as well
+            layout.setOnTouchListener((v, event) -> true);
 
             WebView webView = new WebView(getContext());
             webView.setLayoutParams(new LinearLayout.LayoutParams(
@@ -138,10 +153,17 @@ public class DualScreenManager {
             settings.setLoadWithOverviewMode(true);
             settings.setUseWideViewPort(true);
             
+            // Disable all touch interactions on the WebView
+            webView.setOnTouchListener((v, event) -> true);
+            webView.setFocusable(false);
+            webView.setFocusableInTouchMode(false);
+            
             webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
             
             layout.addView(webView);
             setContentView(layout);
+            
+            Log.d(TAG, "Customer display configured as view-only (no touch input)");
         }
     }
 }
