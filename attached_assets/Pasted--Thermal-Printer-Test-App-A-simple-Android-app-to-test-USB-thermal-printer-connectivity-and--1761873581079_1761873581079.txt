@@ -1,0 +1,246 @@
+# Thermal Printer Test App 🖨️
+
+A simple Android app to test USB thermal printer connectivity and dual-screen customer displays.
+
+## Features
+
+- ✅ **USB Thermal Printer Support**
+  - Connect/disconnect USB thermal printer
+  - Test print functionality
+  - Auto-print receipts after creation
+
+- ✅ **Dual Screen Customer Display**
+  - Toggle customer-facing display
+  - Rotating photo slideshow
+  - Separate window for external display
+
+- ✅ **Receipt Builder**
+  - Add items to cart
+  - Auto-calculate totals with tax
+  - Preview receipts before printing
+
+## Prerequisites
+
+- Node.js (v16 or higher)
+- Android Studio
+- USB thermal printer (for real device testing)
+- Android device or emulator
+
+## Setup Instructions
+
+### 1. Clone & Install
+
+```bash
+git clone <your-repo-url>
+cd thermal-printer-test
+npm install
+```
+
+### 2. Install Capacitor Dependencies
+
+```bash
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npm install capacitor-thermal-printer
+```
+
+### 3. Build Web Assets
+
+```bash
+npm run build
+```
+
+### 4. Initialize Android Project
+
+```bash
+npx cap add android
+npx cap sync android
+```
+
+### 5. Open in Android Studio
+
+```bash
+npm run open
+```
+
+This will open Android Studio. You can then:
+- Build the APK
+- Run on emulator
+- Deploy to connected device
+
+## Project Structure
+
+```
+thermal-printer-test/
+├── src/
+│   ├── index.html          # Main UI
+│   ├── style.css           # Styling
+│   └── app.js              # Application logic
+├── android/                # Native Android project
+├── www/                    # Built web assets
+├── capacitor.config.ts     # Capacitor configuration
+└── package.json
+```
+
+## Usage
+
+### Testing USB Printer
+
+1. Connect USB thermal printer to Android device via OTG cable
+2. Open the app
+3. Click **"Connect Printer"**
+4. Check status shows "Connected"
+5. Click **"Test Print"** to verify
+
+### Testing Dual Screen
+
+1. Toggle **"Enable Customer Display"** switch
+2. If available, content will show on external display
+3. Photos rotate every 3 seconds
+4. Toggle off to close customer display
+
+### Creating & Printing Receipts
+
+1. Enter item name, price, and quantity
+2. Click **"Add Item"** (repeat for multiple items)
+3. Click **"Create Receipt & Print"**
+4. Receipt previews on screen
+5. If printer connected, automatically prints
+
+## Thermal Printer Plugin
+
+This app uses the `capacitor-thermal-printer` plugin. For more details:
+- [Plugin Documentation](https://github.com/capacitor-community/thermal-printer)
+
+### Plugin Configuration
+
+The plugin is configured in `capacitor.config.ts` and requires USB permissions in `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.USB_PERMISSION"/>
+<uses-feature android:name="android.hardware.usb.host" android:required="false"/>
+```
+
+## Building APK
+
+### Option 1: GitHub Actions (Recommended - No Android Studio Needed!)
+
+**Push your code to GitHub and let GitHub Actions build a TRUE native APK automatically!**
+
+See **[GITHUB_ACTIONS_GUIDE.md](GITHUB_ACTIONS_GUIDE.md)** for complete setup.
+
+**Quick steps:**
+1. Push code to GitHub (includes workflow file)
+2. GitHub Actions automatically builds native APK
+3. Download from Actions → Artifacts
+4. Install and test!
+
+**Advantages:**
+- ✅ No Android Studio installation needed
+- ✅ Builds TRUE native APK (not WebView wrapper)
+- ✅ Works from Replit, VS Code, or any editor
+- ✅ Automatic builds on every push
+
+### Option 2: Local Build with Android Studio
+
+**Debug Build:**
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+APK location: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+**Release Build:**
+
+```bash
+cd android
+./gradlew assembleRelease
+```
+
+APK location: `android/app/build/outputs/apk/release/app-release.apk`
+
+## Troubleshooting
+
+### Printer Not Connecting
+
+- Verify USB OTG cable is working
+- Check USB permissions are granted
+- Try disconnecting and reconnecting printer
+- Check printer is compatible with ESC/POS commands
+
+### Dual Screen Not Working
+
+- Browser popup blockers may prevent customer window
+- On Android, ensure app has permission to draw over other apps
+- Try using Chrome/Samsung Internet browser for testing
+
+### Build Errors
+
+```bash
+# Clean and rebuild
+cd android
+./gradlew clean
+cd ..
+npx cap sync android
+```
+
+## Development
+
+### Hot Reload (Browser Testing)
+
+```bash
+# Serve locally for quick testing
+npx serve src
+```
+
+Open http://localhost:3000 in browser
+
+**Note**: USB printer and dual screen features are simulated in browser mode.
+
+### Syncing Changes
+
+After modifying `src/` files:
+
+```bash
+npm run sync
+```
+
+## Supported Printers
+
+This app should work with any ESC/POS compatible thermal printer, including:
+- Epson TM series
+- Star Micronics
+- Bixolon
+- Generic 58mm/80mm thermal printers
+
+## License
+
+MIT
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## Support
+
+For issues with:
+- **This app**: Open an issue on GitHub
+- **Thermal printer plugin**: Check [plugin repository](https://github.com/capacitor-community/thermal-printer)
+- **Capacitor**: See [Capacitor docs](https://capacitorjs.com/docs)
+
+## Next Steps
+
+Once this test app works, you can:
+1. Copy working printer code to main app
+2. Integrate dual screen logic
+3. Add more advanced receipt formatting
+4. Implement printer discovery/selection UI
+
+---
+
+**Happy Testing! 🚀**

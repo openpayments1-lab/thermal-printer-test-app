@@ -1,0 +1,171 @@
+# 🎯 START HERE - Getting Started
+
+Welcome! This is your **thermal printer and dual screen test app**.
+
+## What You Have
+
+A simple Android app that tests:
+- ✅ USB thermal printer connectivity
+- ✅ Dual screen customer display  
+- ✅ Receipt creation and printing
+
+## Quick Start (5 minutes)
+
+### 1️⃣ Extract Files
+```bash
+# If you downloaded the .tar.gz
+tar -xzf thermal-printer-test.tar.gz
+cd thermal-printer-test
+
+# If you cloned from GitHub
+cd thermal-printer-test
+```
+
+### 2️⃣ Run Setup
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+This installs everything you need!
+
+### 3️⃣ Test in Browser (Optional)
+```bash
+npx serve src
+```
+Open http://localhost:3000 to see the UI
+
+### 4️⃣ Build for Android
+
+**Option A: GitHub Actions (No Android Studio needed!)**
+```bash
+# Push to GitHub
+git push origin main
+
+# Wait 5-10 minutes
+# Download APK from GitHub Actions → Artifacts
+```
+**See:** `GITHUB_ACTIONS_GUIDE.md`
+
+**Option B: Local with Android Studio**
+```bash
+npm run open
+```
+This opens Android Studio. Click the green ▶️ Run button!
+
+## What Each File Does
+
+📄 **Start with these:**
+- `PROJECT_SUMMARY.md` - What this app does
+- `QUICKSTART.md` - Setup commands
+- `DEPLOYMENT_CHECKLIST.md` - Testing steps
+
+📁 **Source files:**
+- `src/index.html` - The UI
+- `src/style.css` - Styling
+- `src/app.js` - All the logic
+
+⚙️ **Configuration:**
+- `package.json` - Dependencies
+- `capacitor.config.ts` - Capacitor settings
+- `setup.sh` - Automated setup
+
+📚 **Documentation:**
+- `README.md` - Full documentation
+
+## Testing Workflow
+
+```
+1. Test in Browser 
+   ↓
+2. Build Android APK
+   ↓  
+3. Install on Device
+   ↓
+4. Connect USB Printer
+   ↓
+5. Test All Features
+   ↓
+6. Document Results
+   ↓
+7. Fix Main App!
+```
+
+## Need Help?
+
+**Setup Issues?** → See `QUICKSTART.md`
+
+**Testing Issues?** → See `DEPLOYMENT_CHECKLIST.md`  
+
+**Want Details?** → See `README.md`
+
+**Understanding the Code?** → See `PROJECT_SUMMARY.md`
+
+## GitHub Setup
+
+```bash
+# Create repo on github.com first, then:
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/YOUR_USERNAME/thermal-printer-test.git
+git push -u origin main
+```
+
+## Important Files to Customize
+
+Before testing, you might want to update:
+
+**Store Info** (in `src/app.js`):
+```javascript
+storeName: 'TEST STORE',
+storeAddress: '123 Main St, City, ST 12345',
+```
+
+**Photos** (in `src/app.js`):
+```javascript
+const customerPhotos = [
+    'https://your-photo-url-1.jpg',
+    'https://your-photo-url-2.jpg',
+    // Add your own photos
+];
+```
+
+## Expected Timeline
+
+- ⏱️ **Setup**: 5 minutes
+- ⏱️ **Browser test**: 2 minutes  
+- ⏱️ **Build APK**: 5-10 minutes
+- ⏱️ **Hardware test**: 10 minutes
+- ⏱️ **Total**: ~25 minutes
+
+## Success Looks Like
+
+✅ Printer status shows "Connected"
+✅ Test print produces a receipt
+✅ Cart items display correctly
+✅ Receipt auto-prints after creation
+✅ Customer display shows slideshow
+✅ Activity log shows no errors
+
+## What's Next?
+
+After successful testing:
+
+1. **Document** what worked
+2. **Share** GitHub repo with team
+3. **Copy** working code to main app
+4. **Fix** main app using this reference
+
+---
+
+## 🚀 Ready to Start?
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+**That's it! You're ready to test!** 
+
+Check `DEPLOYMENT_CHECKLIST.md` for step-by-step testing.
