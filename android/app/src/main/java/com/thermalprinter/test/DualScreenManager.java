@@ -120,16 +120,24 @@ public class DualScreenManager {
             super.onCreate(savedInstanceState);
 
             // Configure for dual-screen independent touch operation
-            // Using combined flags in single call (required for some POS hardware)
+            // Critical flags for dual-touch POS systems:
+            // 1. FLAG_NOT_FOCUSABLE: Main screen keeps keyboard/navigation focus
+            // 2. FLAG_NOT_TOUCH_MODAL: Touch events outside this window pass to main screen
+            // 3. FLAG_WATCH_OUTSIDE_TOUCH: Monitor touches to ensure proper routing
             if (getWindow() != null) {
                 getWindow().setFlags(
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
                 );
                 
-                Log.d(TAG, "Customer display configured for independent dual-touch (POS mode)");
+                // Ensure the window doesn't block touches to the main activity
+                getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+                
+                Log.d(TAG, "Customer display configured for independent dual-touch (POS mode) with touch monitoring");
             }
 
             LinearLayout layout = new LinearLayout(getContext());
