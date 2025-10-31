@@ -1,0 +1,33 @@
+That code snippet represents the most robust and correct way to configure a secondary customer display in Android to allow independent control on both screens in a Point-of-Sale (POS) environment.
+
+If, after implementing that fix, only the customer display opens, and the main employee screen becomes unresponsive or blank, the issue is no longer with the flags you provided, but rather with how the main activity's content is being managed after the secondary screen takes over.
+
+🧐 The Correctness of the Flags
+The code you provided is technically correct for enabling dual touch input:
+
+Java
+
+// Combined in single setFlags call (for POS hardware compatibility)
+getWindow().setFlags(
+    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL,
+    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL
+);
+FLAG_NOT_FOCUSABLE: Prevents the customer display from stealing the keyboard/input focus away from the main employee screen (the primary POS screen).
+
+FLAG_NOT_TOUCH_MODAL: This is essential. It allows touch events outside the boundaries of the secondary screen's window to pass through to the main screen, preventing the secondary display from acting as a "touch black hole".
+
+If this code is correctly executed, the customer display will be touch-enabled but will not steal input focus, allowing the employee to continue using the main screen.
+
+🛑 Diagnosis: Main Activity Content Loss
+If the main screen is failing, it's not the CustomerDisplayPresentation's window flags, but how the main BridgeActivity handles its lifecycle when the secondary window is activated.
+
+The two main culprits are:
+
+Activity Lifecycle: The framework (Capacitor/Cordova) might be pausing or destroying the main activity's web view when resources are shifted to the secondary display.
+
+Web View Loss: The main web view's content is being destroyed or unloaded, causing the primary screen to go blank or freeze.
+
+Action Plan: Restore the Main Screen (MainActivity.java)
+You need to inspect and confirm the logic in your main BridgeActivity class (likely MainActivity.java).
+
+When you call openCustomerDisplay, ensure that the main activity's web view is designed to survive interruptions.
