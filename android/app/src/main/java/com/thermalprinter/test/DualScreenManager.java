@@ -8,6 +8,7 @@ import android.hardware.display.DisplayManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.widget.LinearLayout;
@@ -118,6 +119,16 @@ public class DualScreenManager {
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
+            // Prevent customer display from stealing focus from employee screen
+            // FLAG_NOT_FOCUSABLE = doesn't steal focus BUT still receives touch
+            if (getWindow() != null) {
+                getWindow().setFlags(
+                    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                );
+                Log.d(TAG, "Customer display set to non-focusable (touch-enabled, won't steal focus)");
+            }
+
             LinearLayout layout = new LinearLayout(getContext());
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.setBackgroundColor(Color.WHITE);
@@ -143,7 +154,7 @@ public class DualScreenManager {
             layout.addView(webView);
             setContentView(layout);
             
-            Log.d(TAG, "Customer display configured with full touch input enabled");
+            Log.d(TAG, "Customer display: touch-enabled, won't steal focus from employee screen");
         }
     }
 }
