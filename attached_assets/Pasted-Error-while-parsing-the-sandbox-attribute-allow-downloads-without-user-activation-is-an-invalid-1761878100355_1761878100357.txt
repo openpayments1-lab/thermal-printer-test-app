@@ -1,0 +1,97 @@
+Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'battery'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+framework-feb12df8fd4c4694.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-feb12df8fd4c4694.js:1Understand this warning
+ReplAttachedDoc:1 Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+2ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://help.volcora.com&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://firebasestorage.googleapis.com/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://firebasestorage.googleapis.com&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://help.volcora.com&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+21ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+_app-9b3d7a5da68f2d8c.js:13 [Coframe] Mutation callback infinite loop protection triggered, disconnecting mutation observer Object
+(anonymous) @ _app-9b3d7a5da68f2d8c.js:13Understand this error
+_app-9b3d7a5da68f2d8c.js:13 Uncaught TypeError: Cannot read properties of undefined (reading 'dimensions')
+    at get dimensions (7b975a49.ac2ab86144c31db8.js:3:88160)
+    at Object.syncScrollArea (7b975a49.ac2ab86144c31db8.js:3:30735)
+    at 7b975a49.ac2ab86144c31db8.js:3:29381
+    at n (_app-9b3d7a5da68f2d8c.js:13:2959)Understand this error
+_app-9b3d7a5da68f2d8c.js:13 [Coframe] Failed to wait for treatmentApplied callback command Object
+(anonymous) @ _app-9b3d7a5da68f2d8c.js:13Understand this warning
+50ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+729-41735f92fba5be06.js:1 WebSocket connection to 'wss://eval.janeway.platform.replit.com/wsv2/v2.public.Q2dZSWwrK055QVlTQmdpMmk0N0lCaUlIYW1GdVpYZGhlVEFBT3BjQ0NpUTFaV0UyTVdFeVpTMWxZelExTFRSbU5UWXRPVEExWmkxak1qVmpNemN3TmpkbU1qQVNBMjVwZUJvWmNtVndiR2wwTFhKbGNHd3RabWxzWlhNdGFtRnVaWGRoZVNJUFVtVndiRUYwZEdGamFHVmtSRzlqS2docWMzVnNiSGs0TmtKWENocHlaWEJzYVhRdGNtVndiQzFpYkc5amEzTXRhbUZ1WlhkaGVSSVljbVZ3YkdsMExYSmxjR3d0YldWMFlTMXFZVzVsZDJGNUdoOXlaWEJzYVhRdGJXRnlaMkZ5YVc1bExXSnNiMk5yY3kxcVlXNWxkMkY1U2djSXM4UytFeEFCVUFCYUQybHVkR1Z1ZEY5aWRYTnBibVZ6YzFvVWIyNWliMkZ5WkdsdVoxOXliMnhsWDJWNFpXTmFHMjl1WW05aGNtUnBibWRmYW05aVgyVnVkSEpsY0hKbGJtVjFjbklLQ2dZMU4yMWxPVGdRQW5nQVVpVUlBUkNBZ0lDQVFCa0FBQUFBQUFBZ1FDRUFBQUFBQUFBZ1FDaUFnSUNBZ0Fnd0FqZ0FZQUJxRHdpenhMNFRFZ2hxYzNWc2JIazROb0lCQWlvQWdnRUNNZ0NhQVFvS0NEQXVNQzR5TURRNW9BRUI6ConAnilHLbzVy7UWtl7PxEODLq9D0PbYBL5M3JyW3R5AEmpujIW4Z_W8ci0fvFqV7S9BLDgAR4LT-98pBqoG.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+(anonymous) @ 729-41735f92fba5be06.js:1Understand this error
+729-41735f92fba5be06.js:1 WebSocket connection to 'wss://eval.janeway.platform.replit.com/wsv2/v2.public.Q2dZSWwrK055QVlTQmdpMmk0N0lCaUlIYW1GdVpYZGhlVEFBT3BjQ0NpUTFaV0UyTVdFeVpTMWxZelExTFRSbU5UWXRPVEExWmkxak1qVmpNemN3TmpkbU1qQVNBMjVwZUJvWmNtVndiR2wwTFhKbGNHd3RabWxzWlhNdGFtRnVaWGRoZVNJUFVtVndiRUYwZEdGamFHVmtSRzlqS2docWMzVnNiSGs0TmtKWENocHlaWEJzYVhRdGNtVndiQzFpYkc5amEzTXRhbUZ1WlhkaGVSSVljbVZ3YkdsMExYSmxjR3d0YldWMFlTMXFZVzVsZDJGNUdoOXlaWEJzYVhRdGJXRnlaMkZ5YVc1bExXSnNiMk5yY3kxcVlXNWxkMkY1U2djSXM4UytFeEFCVUFCYUQybHVkR1Z1ZEY5aWRYTnBibVZ6YzFvVWIyNWliMkZ5WkdsdVoxOXliMnhsWDJWNFpXTmFHMjl1WW05aGNtUnBibWRmYW05aVgyVnVkSEpsY0hKbGJtVjFjbklLQ2dZMU4yMWxPVGdRQW5nQVVpVUlBUkNBZ0lDQVFCa0FBQUFBQUFBZ1FDRUFBQUFBQUFBZ1FDaUFnSUNBZ0Fnd0FqZ0FZQUJxRHdpenhMNFRFZ2hxYzNWc2JIazROb0lCQWlvQWdnRUNNZ0NhQVFvS0NEQXVNQzR5TURRNW9BRUI6ConAnilHLbzVy7UWtl7PxEODLq9D0PbYBL5M3JyW3R5AEmpujIW4Z_W8ci0fvFqV7S9BLDgAR4LT-98pBqoG.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: WebSocket is closed before the connection is established.
+push.17730.constructor.cleanupSocket @ 729-41735f92fba5be06.js:1Understand this warning
+35ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/:1  Failed to load resource: the server responded with a status of 502 ()Understand this error
+t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://usbprintermanager.java/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://usbprintermanager.java&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+32ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+attached_assets/IMG_7860_1761857296701.png:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+729-41735f92fba5be06.js:1 WebSocket connection to 'wss://eval.janeway.platform.replit.com/wsv2/v2.public.Q2dZSXJ2YU95QVlTQmdqTmtvL0lCaUlIYW1GdVpYZGhlVEFBT3BjQ0NpUTFaV0UyTVdFeVpTMWxZelExTFRSbU5UWXRPVEExWmkxak1qVmpNemN3TmpkbU1qQVNBMjVwZUJvWmNtVndiR2wwTFhKbGNHd3RabWxzWlhNdGFtRnVaWGRoZVNJUFVtVndiRUYwZEdGamFHVmtSRzlqS2docWMzVnNiSGs0TmtKWENocHlaWEJzYVhRdGNtVndiQzFpYkc5amEzTXRhbUZ1WlhkaGVSSVljbVZ3YkdsMExYSmxjR3d0YldWMFlTMXFZVzVsZDJGNUdoOXlaWEJzYVhRdGJXRnlaMkZ5YVc1bExXSnNiMk5yY3kxcVlXNWxkMkY1U2djSXM4UytFeEFCVUFCYUQybHVkR1Z1ZEY5aWRYTnBibVZ6YzFvVWIyNWliMkZ5WkdsdVoxOXliMnhsWDJWNFpXTmFHMjl1WW05aGNtUnBibWRmYW05aVgyVnVkSEpsY0hKbGJtVjFjbklLQ2dZMU4yMWxPVGdRQW5nQVVpVUlBUkNBZ0lDQVFCa0FBQUFBQUFBZ1FDRUFBQUFBQUFBZ1FDaUFnSUNBZ0Fnd0FqZ0FZQUJxRHdpenhMNFRFZ2hxYzNWc2JIazROb0lCQWlvQWdnRUNNZ0NhQVFvS0NEQXVNQzR5TURRNW9BRUJERkvEpqrLLLOXBW3IaAWJHei0_jnneDuwBHKkmN_Axm9QVuuyNvibKJprx0l0XwwLv1TnZxdUhoafPbIqe94H.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: 
+(anonymous) @ 729-41735f92fba5be06.js:1Understand this error
+729-41735f92fba5be06.js:1 WebSocket connection to 'wss://eval.janeway.platform.replit.com/wsv2/v2.public.Q2dZSXJ2YU95QVlTQmdqTmtvL0lCaUlIYW1GdVpYZGhlVEFBT3BjQ0NpUTFaV0UyTVdFeVpTMWxZelExTFRSbU5UWXRPVEExWmkxak1qVmpNemN3TmpkbU1qQVNBMjVwZUJvWmNtVndiR2wwTFhKbGNHd3RabWxzWlhNdGFtRnVaWGRoZVNJUFVtVndiRUYwZEdGamFHVmtSRzlqS2docWMzVnNiSGs0TmtKWENocHlaWEJzYVhRdGNtVndiQzFpYkc5amEzTXRhbUZ1WlhkaGVSSVljbVZ3YkdsMExYSmxjR3d0YldWMFlTMXFZVzVsZDJGNUdoOXlaWEJzYVhRdGJXRnlaMkZ5YVc1bExXSnNiMk5yY3kxcVlXNWxkMkY1U2djSXM4UytFeEFCVUFCYUQybHVkR1Z1ZEY5aWRYTnBibVZ6YzFvVWIyNWliMkZ5WkdsdVoxOXliMnhsWDJWNFpXTmFHMjl1WW05aGNtUnBibWRmYW05aVgyVnVkSEpsY0hKbGJtVjFjbklLQ2dZMU4yMWxPVGdRQW5nQVVpVUlBUkNBZ0lDQVFCa0FBQUFBQUFBZ1FDRUFBQUFBQUFBZ1FDaUFnSUNBZ0Fnd0FqZ0FZQUJxRHdpenhMNFRFZ2hxYzNWc2JIazROb0lCQWlvQWdnRUNNZ0NhQVFvS0NEQXVNQzR5TURRNW9BRUJERkvEpqrLLLOXBW3IaAWJHei0_jnneDuwBHKkmN_Axm9QVuuyNvibKJprx0l0XwwLv1TnZxdUhoafPbIqe94H.Q2dad2NtOWtPak1pQ25KbGNHeHBkQzVqYjIwPQ' failed: WebSocket is closed before the connection is established.
+push.17730.constructor.cleanupSocket @ 729-41735f92fba5be06.js:1Understand this warning
+ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://mainactivity.java&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://libserial_port.so/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://libserial_port.so&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://mainactivity.java/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+13ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=%3Ar2ao%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.Understand this warning
+27ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://libserial_port.so&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://libserial_port.so/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://android.hardware.usb.host/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://android.hardware.usb.host&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://libserial_port.so&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://libserial_port.so/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://android.hardware.usb.host&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://android.hardware.usb.host/&size=32:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+8ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+15ReplAttachedDoc#andr…droidManifest.xml:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+24ReplAttachedDoc:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/:1  Failed to load resource: the server responded with a status of 503 ()Understand this error
+ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/:1  Failed to load resource: the server responded with a status of 503 ()Understand this error
+24ReplAttachedDoc#andr…creenManager.java:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
