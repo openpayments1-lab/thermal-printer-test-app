@@ -9,8 +9,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     ThermalPrinter: {
-      androidPackage: 'com.thermalprinter.test',
-      androidClassName: 'ThermalPrinterPlugin'
+      androidClassName: 'com.thermalprinter.test.ThermalPrinterPlugin'
     }
   }
 };
