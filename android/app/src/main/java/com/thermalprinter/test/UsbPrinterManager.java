@@ -7,6 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.Looper;
@@ -29,7 +32,11 @@ public class UsbPrinterManager {
     private Activity activity;
     private UsbManager usbManager;
     private UsbDevice currentDevice;
-    private PrinterInstance printerInstance;
+    private PrinterInstance printerInstance;  // For VOLCORA SDK mode
+    private UsbDeviceConnection usbConnection; // For generic USB mode
+    private UsbInterface usbInterface;
+    private UsbEndpoint usbEndpoint;
+    private boolean isGenericMode = false;
     private PluginCall pendingCall;
     
     private final Handler connectionHandler = new Handler(Looper.getMainLooper()) {
@@ -161,6 +168,23 @@ public class UsbPrinterManager {
             }
             
             currentDevice = targetDevice;
+            
+            // Try Generic USB connection first
+            if (connectGenericUSB(targetDevice)) {
+                isGenericMode = true;
+                Log.d(TAG, "Connected to generic USB printer: " + targetDevice.getDeviceName());
+                
+                JSObject result = new JSObject();
+                result.put("success", true);
+                result.put("deviceName", targetDevice.getDeviceName());
+                result.put("mode", "generic");
+                result.put("message", "Connected to generic USB thermal printer");
+                call.resolve(result);
+                return;
+            }
+            
+            // Fall back to VOLCORA SDK
+            Log.d(TAG, "Generic USB failed, trying VOLCORA SDK...");
             pendingCall = call;
             
             printerInstance = PrinterInstance.getPrinterInstance(activity, targetDevice, connectionHandler);
@@ -169,10 +193,11 @@ public class UsbPrinterManager {
             
             if (!connected) {
                 pendingCall = null;
-                call.reject("Failed to open connection to printer");
+                call.reject("Failed to connect to printer (both generic and VOLCORA SDK failed)");
                 return;
             }
             
+            isGenericMode = false;
             Log.d(TAG, "VOLCORA SDK: Attempting to connect to printer: " + targetDevice.getDeviceName());
             
         } catch (Exception e) {
@@ -181,22 +206,94 @@ public class UsbPrinterManager {
             call.reject("Failed to connect to printer: " + e.getMessage());
         }
     }
+    
+    private boolean connectGenericUSB(UsbDevice device) {
+        try {
+            // Open USB connection
+            usbConnection = usbManager.openDevice(device);
+            if (usbConnection == null) {
+                Log.e(TAG, "Failed to open USB connection");
+                return false;
+            }
+            
+            // Find the printer interface (usually interface 0)
+            if (device.getInterfaceCount() == 0) {
+                Log.e(TAG, "No USB interfaces found");
+                return false;
+            }
+            
+            usbInterface = device.getInterface(0);
+            
+            // Claim the interface
+            if (!usbConnection.claimInterface(usbInterface, true)) {
+                Log.e(TAG, "Failed to claim USB interface");
+                usbConnection.close();
+                usbConnection = null;
+                return false;
+            }
+            
+            // Find the bulk OUT endpoint for sending data to printer
+            for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
+                UsbEndpoint endpoint = usbInterface.getEndpoint(i);
+                if (endpoint.getType() == android.hardware.usb.UsbConstants.USB_ENDPOINT_XFER_BULK &&
+                    endpoint.getDirection() == android.hardware.usb.UsbConstants.USB_DIR_OUT) {
+                    usbEndpoint = endpoint;
+                    break;
+                }
+            }
+            
+            if (usbEndpoint == null) {
+                Log.e(TAG, "No bulk OUT endpoint found");
+                usbConnection.releaseInterface(usbInterface);
+                usbConnection.close();
+                usbConnection = null;
+                return false;
+            }
+            
+            Log.d(TAG, "Successfully connected to generic USB printer");
+            return true;
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error in generic USB connection", e);
+            if (usbConnection != null) {
+                usbConnection.close();
+                usbConnection = null;
+            }
+            return false;
+        }
+    }
 
     public void disconnectPrinter(PluginCall call) {
         try {
-            if (printerInstance != null) {
-                printerInstance.closeConnection();
-                printerInstance = null;
+            if (isGenericMode) {
+                // Disconnect generic USB
+                if (usbInterface != null && usbConnection != null) {
+                    usbConnection.releaseInterface(usbInterface);
+                }
+                if (usbConnection != null) {
+                    usbConnection.close();
+                    usbConnection = null;
+                }
+                usbInterface = null;
+                usbEndpoint = null;
+                Log.d(TAG, "Disconnected from generic USB printer");
+            } else {
+                // Disconnect VOLCORA SDK
+                if (printerInstance != null) {
+                    printerInstance.closeConnection();
+                    printerInstance = null;
+                }
+                Log.d(TAG, "Disconnected from printer via VOLCORA SDK");
             }
             
             currentDevice = null;
+            isGenericMode = false;
             
             JSObject result = new JSObject();
             result.put("success", true);
             result.put("message", "Disconnected from printer");
             call.resolve(result);
             
-            Log.d(TAG, "Disconnected from printer via VOLCORA SDK");
         } catch (Exception e) {
             Log.e(TAG, "Error disconnecting from printer", e);
             call.reject("Failed to disconnect from printer: " + e.getMessage());
@@ -205,13 +302,38 @@ public class UsbPrinterManager {
 
     public void printRawData(String base64Data, PluginCall call) {
         try {
-            if (printerInstance == null) {
+            if (!isGenericMode && printerInstance == null) {
+                call.reject("Printer not connected");
+                return;
+            }
+            
+            if (isGenericMode && usbConnection == null) {
                 call.reject("Printer not connected");
                 return;
             }
             
             byte[] data = Base64.decode(base64Data, Base64.DEFAULT);
             
+            if (isGenericMode) {
+                // Send via generic USB bulk transfer
+                int bytesTransferred = usbConnection.bulkTransfer(usbEndpoint, data, data.length, 5000);
+                
+                if (bytesTransferred < 0) {
+                    call.reject("Failed to send data to printer (USB transfer failed)");
+                    return;
+                }
+                
+                JSObject result = new JSObject();
+                result.put("success", true);
+                result.put("bytesTransferred", bytesTransferred);
+                result.put("message", "Data sent to generic USB printer successfully");
+                call.resolve(result);
+                
+                Log.d(TAG, "Sent " + bytesTransferred + " bytes to generic USB printer");
+                return;
+            }
+            
+            // VOLCORA SDK mode
             int result = printerInstance.sendBytesData(data);
             
             if (result < 0) {
