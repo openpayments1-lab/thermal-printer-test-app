@@ -30,17 +30,41 @@ class ThermalPrinterApp {
     }
     
     checkCapacitorAvailable() {
+        // Comprehensive debug logging
+        console.log('=== CAPACITOR DEBUG INFO ===');
+        console.log('Capacitor defined?', typeof Capacitor !== 'undefined');
+        
+        if (typeof Capacitor !== 'undefined') {
+            console.log('Capacitor.Plugins:', Capacitor.Plugins);
+            console.log('Available plugins:', Object.keys(Capacitor.Plugins || {}));
+            console.log('ThermalPrinter plugin:', Capacitor.Plugins?.ThermalPrinter);
+            console.log('window.ThermalPrinter:', window.ThermalPrinter);
+        }
+        
+        console.log('=== END DEBUG ===');
+        
         if (this.isNativePluginAvailable()) {
             this.log('✓ Capacitor detected - Hardware features enabled', 'success');
+            this.log('✓ ThermalPrinter plugin found and ready', 'success');
         } else {
             this.log('⚠ Running in browser - Hardware features unavailable (simulation mode only)', 'info');
+            if (typeof Capacitor !== 'undefined') {
+                this.log('ℹ Capacitor is available but ThermalPrinter plugin not found', 'error');
+                this.log('ℹ Available plugins: ' + Object.keys(Capacitor.Plugins || {}).join(', '), 'info');
+            } else {
+                this.log('ℹ Capacitor not available - you are in a web browser', 'info');
+            }
         }
     }
     
     isNativePluginAvailable() {
-        // Check both global ThermalPrinter and Capacitor.Plugins.ThermalPrinter
-        return typeof Capacitor !== 'undefined' && 
-               (window.ThermalPrinter || (Capacitor.Plugins && Capacitor.Plugins.ThermalPrinter));
+        // Check if Capacitor is defined and has our plugin
+        if (typeof Capacitor === 'undefined') {
+            return false;
+        }
+        
+        // Check for the plugin in Capacitor.Plugins
+        return Capacitor.Plugins && Capacitor.Plugins.ThermalPrinter !== undefined;
     }
     
     getPlugin() {
