@@ -25,8 +25,7 @@ public class CustomerDisplayPresentation extends Presentation {
         super.onCreate(savedInstanceState);
         
         // CRITICAL: Set window flags to prevent stealing touch from MainActivity
-        // TYPE_PRESENTATION ensures this is a non-interactive overlay
-        getWindow().setType(WindowManager.LayoutParams.TYPE_PRESENTATION);
+        // Presentation class already sets the correct window type for secondary displays
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         
@@ -34,7 +33,7 @@ public class CustomerDisplayPresentation extends Presentation {
         Log.d(TAG, "CustomerDisplayPresentation created on display:");
         Log.d(TAG, "  Display ID: " + display.getDisplayId());
         Log.d(TAG, "  Display Name: " + display.getName());
-        Log.d(TAG, "  Window type: TYPE_PRESENTATION (non-Activity window)");
+        Log.d(TAG, "  Window type: Presentation (non-Activity window)");
         Log.d(TAG, "  MainActivity should remain the RESUMED activity with touch control");
         
         // Create layout
