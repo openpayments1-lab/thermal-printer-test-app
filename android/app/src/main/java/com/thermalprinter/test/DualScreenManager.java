@@ -26,32 +26,51 @@ public class DualScreenManager {
 
     public void checkSecondaryDisplay(PluginCall call) {
         try {
-            Display[] displays = displayManager.getDisplays();
+            // Use DISPLAY_CATEGORY_PRESENTATION to find external customer displays
+            Display[] presentationDisplays = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                presentationDisplays = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
+            }
             
-            // Find the actual secondary display (not the default/primary display)
-            Display secondaryDisplay = null;
-            for (Display display : displays) {
-                Log.d(TAG, "Found display - ID: " + display.getDisplayId() + ", Name: " + display.getName());
-                if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
-                    secondaryDisplay = display;
-                    break;
+            Display[] allDisplays = displayManager.getDisplays();
+            
+            // Log all displays for diagnostics
+            for (Display display : allDisplays) {
+                Log.d(TAG, "Display found - ID: " + display.getDisplayId() + 
+                      ", Name: " + display.getName() + 
+                      ", State: " + display.getState() +
+                      ", IsDefault: " + (display.getDisplayId() == Display.DEFAULT_DISPLAY));
+            }
+            
+            // Find the external presentation display (true customer screen)
+            Display customerDisplay = null;
+            
+            // First try presentation displays (Android 12+)
+            if (presentationDisplays != null && presentationDisplays.length > 0) {
+                customerDisplay = presentationDisplays[0];
+                Log.d(TAG, "Using PRESENTATION display ID " + customerDisplay.getDisplayId() + " for customer screen");
+            } else {
+                // Fallback: Use non-default display
+                for (Display display : allDisplays) {
+                    if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
+                        customerDisplay = display;
+                        Log.d(TAG, "Using non-default display ID " + customerDisplay.getDisplayId() + " for customer screen");
+                        break;
+                    }
                 }
             }
             
             JSObject result = new JSObject();
-            result.put("hasSecondaryDisplay", secondaryDisplay != null);
-            result.put("displayCount", displays.length);
+            result.put("hasSecondaryDisplay", customerDisplay != null);
+            result.put("displayCount", allDisplays.length);
             
-            if (secondaryDisplay != null) {
+            if (customerDisplay != null) {
                 JSObject displayInfo = new JSObject();
-                displayInfo.put("displayId", secondaryDisplay.getDisplayId());
-                displayInfo.put("name", secondaryDisplay.getName());
-                displayInfo.put("width", secondaryDisplay.getMode().getPhysicalWidth());
-                displayInfo.put("height", secondaryDisplay.getMode().getPhysicalHeight());
+                displayInfo.put("displayId", customerDisplay.getDisplayId());
+                displayInfo.put("name", customerDisplay.getName());
+                displayInfo.put("width", customerDisplay.getMode().getPhysicalWidth());
+                displayInfo.put("height", customerDisplay.getMode().getPhysicalHeight());
                 result.put("secondaryDisplayInfo", displayInfo);
-                Log.d(TAG, "Secondary (customer) display found: ID " + secondaryDisplay.getDisplayId());
-            } else {
-                Log.d(TAG, "No secondary display found (only default display present)");
             }
             
             call.resolve(result);
@@ -63,24 +82,40 @@ public class DualScreenManager {
 
     public void showOnSecondaryDisplay(String html, PluginCall call) {
         try {
-            Display[] displays = displayManager.getDisplays();
+            // Use DISPLAY_CATEGORY_PRESENTATION to find the real external customer display
+            Display[] presentationDisplays = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                presentationDisplays = displayManager.getDisplays(DisplayManager.DISPLAY_CATEGORY_PRESENTATION);
+            }
             
-            // Find the actual secondary display (not the default/primary display)
-            Display secondaryDisplay = null;
-            for (Display display : displays) {
-                if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
-                    secondaryDisplay = display;
-                    Log.d(TAG, "Selected display ID " + display.getDisplayId() + " (" + display.getName() + ") for customer display");
-                    break;
+            Display[] allDisplays = displayManager.getDisplays();
+            
+            // Find the external presentation display (true customer screen)
+            Display customerDisplay = null;
+            
+            // First try presentation displays (Android 12+)
+            if (presentationDisplays != null && presentationDisplays.length > 0) {
+                customerDisplay = presentationDisplays[0];
+                Log.d(TAG, "Selected PRESENTATION display ID " + customerDisplay.getDisplayId() + 
+                      " (" + customerDisplay.getName() + ") for customer display");
+            } else {
+                // Fallback: Use non-default display
+                for (Display display : allDisplays) {
+                    if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
+                        customerDisplay = display;
+                        Log.d(TAG, "Selected non-default display ID " + customerDisplay.getDisplayId() + 
+                              " (" + customerDisplay.getName() + ") for customer display");
+                        break;
+                    }
                 }
             }
             
-            if (secondaryDisplay == null) {
-                call.reject("No secondary display found");
+            if (customerDisplay == null) {
+                call.reject("No external customer display found");
                 return;
             }
             
-            int displayId = secondaryDisplay.getDisplayId();
+            int displayId = customerDisplay.getDisplayId();
             
             activity.runOnUiThread(() -> {
                 try {

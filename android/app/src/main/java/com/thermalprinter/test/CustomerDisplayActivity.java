@@ -32,7 +32,12 @@ public class CustomerDisplayActivity extends Activity {
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         
-        Log.d(TAG, "CustomerDisplayActivity created on display " + getDisplay().getDisplayId() + " (passive, non-touchable)");
+        android.view.Display display = getDisplay();
+        Log.d(TAG, "CustomerDisplayActivity created on display:");
+        Log.d(TAG, "  Display ID: " + display.getDisplayId());
+        Log.d(TAG, "  Display Name: " + display.getName());
+        Log.d(TAG, "  Is DEFAULT_DISPLAY: " + (display.getDisplayId() == android.view.Display.DEFAULT_DISPLAY));
+        Log.d(TAG, "  Window flags: NOT_FOCUSABLE + NOT_TOUCHABLE (passive customer display)");
 
         // Get HTML content from intent or static storage
         String htmlContent = getIntent().getStringExtra("html_content");

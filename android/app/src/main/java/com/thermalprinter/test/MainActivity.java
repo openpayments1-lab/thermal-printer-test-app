@@ -12,12 +12,18 @@ public class MainActivity extends BridgeActivity {
         // Register inline custom plugins BEFORE calling super.onCreate()
         registerPlugin(ThermalPrinterPlugin.class);
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "MainActivity created - ready for dual-screen with separate activity architecture");
+        
+        android.view.Display display = getWindowManager().getDefaultDisplay();
+        Log.d(TAG, "MainActivity created on display:");
+        Log.d(TAG, "  Display ID: " + display.getDisplayId());
+        Log.d(TAG, "  Display Name: " + display.getName());
+        Log.d(TAG, "  Is DEFAULT_DISPLAY: " + (display.getDisplayId() == android.view.Display.DEFAULT_DISPLAY));
+        Log.d(TAG, "  This should be the EMPLOYEE screen with full touch control");
     }
     
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "MainActivity onResume - employee screen active with independent touch");
+        Log.d(TAG, "MainActivity onResume - employee screen should be touchable");
     }
 }
