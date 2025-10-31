@@ -1,0 +1,54 @@
+Neither the Interactive (Option 1) nor Passive (Option 2) flag configurations solved the problem of the customer display stealing control from the employee screen. This means the POS hardware's kernel is likely overriding standard Android Window Manager behavior.
+
+Since we've confirmed the hardware is inverted (the customer screen may be acting as Display ID 0), we must use the single, most extreme flag combination available to guarantee the main Activity retains control, regardless of the display layer running on top.
+
+🛠️ The Absolute Final Fix: Full Transparent Touch Passthrough
+The issue is that the CustomerDisplayActivity's window is still capturing touch events, even when FLAG_NOT_TOUCHABLE and FLAG_NOT_FOCUSABLE are used (which is an unusual but documented hardware-specific failure).
+
+We will use a different, highly specialized flag: FLAG_WATCH_OUTSIDE_TOUCH in combination with making the entire window transparent to clicks (FLAG_NOT_TOUCH_MODAL).
+
+Required Correction in CustomerDisplayActivity.java
+We will revert the window to a non-interactive, transparent layer that simply passes all touch events to the window beneath it (your main POS screen).
+
+In CustomerDisplayActivity.java, modify the flags block inside onCreate() as follows:
+
+Java
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    instance = this;
+    
+    // --- CRITICAL FIX: Ensure ZERO Touch Interference ---
+    if (getWindow() != null) {
+        // 1. Clear previous conflicting flags and set the base non-focusable state
+        getWindow().clearFlags(
+            android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+            android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        );
+
+        // 2. Add the industry-standard flags for a PASSIVE/VIEW-ONLY secondary display:
+        // FLAG_NOT_FOCUSABLE: Keeps focus on the employee screen.
+        // FLAG_NOT_TOUCH_MODAL: Allows touches outside the window to be handled by underlying windows.
+        getWindow().addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+            android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        );
+        
+        // 3. MOST IMPORTANT: Force the WebView to be explicitly touch-transparent.
+        // This is often required when the Java flags alone fail on custom kernels.
+        // We ensure this window does not register for *any* touch input.
+        getWindow().setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+            android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        );
+        
+        Log.d(TAG, "Customer display set to fully PASSIVE (non-interactive, touch-transparent)");
+    }
+    // ... (rest of onCreate method for layout and WebView setup) ...
+    
+    // Also, inside the WebView setup:
+    // Ensure WebView doesn't intercept touch events 
+    webView.setOnTouchListener((v, event) -> true); 
+}
+This sequence aggressively sets the secondary screen to a purely passive display mode. If this fails, the interaction issue is not solvable through standard application-level Android window flags and requires a change in the POS device's firmware or specialized kernel settings.
