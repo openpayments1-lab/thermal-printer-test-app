@@ -1,11 +1,8 @@
 package com.thermalprinter.test;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.display.DisplayManager;
-import android.os.Build;
 import android.util.Log;
 import android.view.Display;
 
@@ -17,6 +14,7 @@ public class DualScreenManager {
     
     private Activity activity;
     private DisplayManager displayManager;
+    private CustomerDisplayPresentation presentation;
     private boolean isCustomerDisplayActive = false;
 
     public DualScreenManager(Activity activity) {
@@ -115,39 +113,34 @@ public class DualScreenManager {
                 return;
             }
             
-            int displayId = customerDisplay.getDisplayId();
+            Display targetDisplay = customerDisplay;
             
             activity.runOnUiThread(() -> {
                 try {
-                    // Store HTML content for the new activity
-                    CustomerDisplayActivity.setPendingContent(html);
+                    // CRITICAL FIX: Use Presentation instead of separate Activity
+                    // This keeps MainActivity as the ONLY resumed activity
+                    // Touch routing stays with MainActivity, avoiding Ilitek firmware touch steal
                     
-                    // Create intent for CustomerDisplayActivity
-                    Intent intent = new Intent(activity, CustomerDisplayActivity.class);
-                    intent.putExtra("html_content", html);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                    
-                    // Launch on secondary display using ActivityOptions
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        ActivityOptions options = ActivityOptions.makeBasic();
-                        options.setLaunchDisplayId(displayId);
-                        activity.startActivity(intent, options.toBundle());
-                        Log.d(TAG, "Launched CustomerDisplayActivity on display " + displayId + " for independent dual-touch");
-                    } else {
-                        activity.startActivity(intent);
-                        Log.d(TAG, "Launched CustomerDisplayActivity (legacy mode)");
+                    if (presentation != null && presentation.isShowing()) {
+                        presentation.dismiss();
                     }
+                    
+                    presentation = new CustomerDisplayPresentation(activity, targetDisplay, html);
+                    presentation.show();
+                    
+                    Log.d(TAG, "Presentation shown on display " + targetDisplay.getDisplayId());
+                    Log.d(TAG, "MainActivity remains RESUMED with touch control (Presentation is non-Activity window)");
                     
                     isCustomerDisplayActive = true;
                     
                     JSObject result = new JSObject();
                     result.put("success", true);
-                    result.put("message", "Customer display activity launched with independent touch input");
+                    result.put("message", "Customer display shown via Presentation (MainActivity keeps touch)");
                     call.resolve(result);
                     
                 } catch (Exception e) {
-                    Log.e(TAG, "Error launching customer display activity", e);
-                    call.reject("Failed to launch customer display: " + e.getMessage());
+                    Log.e(TAG, "Error showing customer display presentation", e);
+                    call.reject("Failed to show customer display: " + e.getMessage());
                 }
             });
         } catch (Exception e) {
@@ -159,11 +152,11 @@ public class DualScreenManager {
     public void hideSecondaryDisplay(PluginCall call) {
         try {
             activity.runOnUiThread(() -> {
-                // Finish the customer display activity to properly close it
-                CustomerDisplayActivity customerActivity = CustomerDisplayActivity.getInstance();
-                if (customerActivity != null) {
-                    customerActivity.finish();
-                    Log.d(TAG, "CustomerDisplayActivity finished");
+                // Dismiss the presentation window
+                if (presentation != null && presentation.isShowing()) {
+                    presentation.dismiss();
+                    presentation = null;
+                    Log.d(TAG, "Customer display Presentation dismissed");
                 }
                 
                 isCustomerDisplayActive = false;
