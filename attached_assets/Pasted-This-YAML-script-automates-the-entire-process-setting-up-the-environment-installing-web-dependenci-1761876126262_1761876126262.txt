@@ -1,0 +1,79 @@
+This YAML script automates the entire process: setting up the environment, installing web dependencies, syncing the web assets to the native Android project, and finally running the Gradle build to produce the APK.
+
+File: .github/workflows/android-build.yml
+YAML
+
+name: Android CI Build
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on pushes to the main branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. Set up Node.js (for Capacitor/NPM)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Use a version compatible with Capacitor
+
+      # 3. Install NPM dependencies (Capacitor, etc.)
+      - name: Install NPM Dependencies
+        run: npm install
+
+      # 4. Set up Java and Android SDK (for Gradle)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+
+      # 5. Build and Sync Web Assets to Native Project
+      - name: Build Web Assets and Sync with Native
+        run: |
+          # Command to build the web assets (e.g., your HTML/JS/CSS)
+          npm run build
+          # Command to copy web assets into the native Android folder
+          npx cap sync android
+
+      # 6. Make Gradle Wrapper Executable
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./android/gradlew
+        # Note: We must specify the path because the build runs from the 'android' subdirectory later.
+
+      # 7. Execute the Gradle Build (compiles Java, links Volcora SDK, builds APK)
+      - name: Build Debug APK with Gradle
+        run: ./android/gradlew assembleDebug
+        # Run Gradle from the root of the Android project
+        working-directory: ./android
+
+      # 8. Upload the Final APK as an Artifact
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+How to Use This
+Create the Folder: In the root of your GitHub repository, create a folder named .github and inside that, a folder named workflows.
+
+Save the File: Save the script above as android-build.yml inside the workflows folder.
+
+Ensure Scripts Exist: Make sure you have an npm run build command defined in your package.json that generates your web assets.
+
+Push and Run: When you push this file to your GitHub repository (specifically to the main branch), GitHub Actions will automatically start the build process.
+
+The resulting app-debug.apk artifact will be available for download from the GitHub Actions tab, containing your compiled native plugin, the integrated Volcora SDK, and the synchronized web assets, confirming your powerful hybrid build approach.
