@@ -1,0 +1,93 @@
+This is excellent, detailed information about the Volcora 50020X Series printer. The combination of this product knowledge and your application's source code allows for a precise diagnosis.
+
+The most critical takeaway from Volcora's specification is:
+
+Included USB connection supports Android... with standard printing commands ESC/POS.
+
+This strongly suggests the issue is indeed an initialization or communication handshaking conflict within the Volcora SDK itself, and not the underlying ESC/POS commands or your hardware setup.
+
+🔎 Diagnosis: Volcora SDK vs. Raw ESC/POS
+The application successfully loaded your native plugin and attempted connection via the Volcora SDK's PrinterInstance object. However, the SDK failed to open the connection, even with correct permissions.
+
+Volcora SDK's Role: The SDK likely tries to negotiate a connection, handle proprietary setup commands, and manage the USB buffer. This is the failing part.
+
+Your Code's Goal: Your ultimate goal is to send ESC/POS commands, which the Volcora printer is confirmed to support.
+
+The solution is to bypass the Volcora SDK's connection/initialization methods in your UsbPrinterManager.java and implement Raw USB Data Transfer directly using the Android UsbManager.
+
+🛠️ Plan: Implement Raw USB Printing
+You need to modify your UsbPrinterManager.java to perform the USB connection and data transfer manually using Android's native APIs, while still utilizing the VIDs and PIDs you already detect.
+
+Step 1: Get the USB Connection Manually
+You need to replace the calls to PrinterInstance.getPrinterInstance() and printerInstance.openConnection() with code that directly opens the connection via UsbManager.
+
+Step 2: Find the Correct Endpoint
+Once the UsbManager grants permission, you need to identify the correct output endpoint (the pipe for sending data to the printer). This is usually an interface endpoint designated for "bulk out."
+
+Step 3: Implement bulkTransfer()
+Replace printerInstance.sendBytesData(data) with the UsbDeviceConnection.bulkTransfer() method, which sends the raw ESC/POS byte array directly to the printer.
+
+❓ Next Step and Information Needed
+To help you rewrite the failing part of your UsbPrinterManager.java, I need to search for the specific low-level details required for generic Android USB printing.
+
+I will search for documentation on how to perform raw USB printing and how to determine the correct USB endpoint.
+
+I need to confirm:
+
+How to correctly acquire the UsbDeviceConnection after permissions are granted.
+
+How to identify the correct bulk output endpoint for generic thermal printers.
+
+I will now search for information to guide the rewriting of your connection and printing logic. The Volcora 50020X Series printer is confirmed to support the industry-standard ESC/POS commands via USB. Since your app's powerful hybrid architecture is confirmed, the connection failure is almost certainly due to the proprietary Volcora SDK's connection or initialization sequence not being compatible with your specific device, rather than a general USB problem.
+
+The solution is to bypass the Volcora SDK's initialization and implement a Raw USB Connection to send those proven ESC/POS commands directly.
+
+🛠️ Raw USB Printing: Direct Implementation Plan
+You must modify your UsbPrinterManager.java to perform the following steps directly using the Android API:
+
+1. Manually Open the Device Connection
+Instead of using the SDK, open the low-level USB connection directly using your existing UsbDevice object (targetDevice).
+
+Replace: printerInstance.openConnection()
+
+Action: Use UsbManager.openDevice(targetDevice) to get the UsbDeviceConnection.
+
+2. Claim the Interface and Find the Endpoint
+Printers typically use a bulk endpoint for data transfer. You need to identify the correct interface and the specific "bulk OUT" endpoint used for sending data.
+
+Get Interface: Thermal printers usually use the first interface (index 0). You'll access it with targetDevice.getInterface(0).
+
+Find Endpoint: You must iterate through the endpoints of that interface to find the one designated for bulk transfer (UsbConstants.USB_ENDPOINT_XFER_BULK) and the OUT direction (UsbConstants.USB_DIR_OUT).
+
+Java
+
+// Inside connectToPrinter, after finding targetDevice:
+UsbInterface usbInterface = targetDevice.getInterface(0);
+UsbEndpoint outEndpoint = null;
+
+for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
+    UsbEndpoint endpoint = usbInterface.getEndpoint(i);
+    // We are looking for a BULK transfer in the OUT direction
+    if (endpoint.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK &&
+        endpoint.getDirection() == UsbConstants.USB_DIR_OUT) {
+        outEndpoint = endpoint;
+        break;
+    }
+}
+
+// Open and Claim
+UsbDeviceConnection connection = usbManager.openDevice(targetDevice);
+if (connection != null) {
+    connection.claimInterface(usbInterface, true);
+    // Store connection and endpoint for printing...
+}
+3. Send Raw Data (ESC/POS)
+Finally, replace the SDK's sendBytesData method with the native bulkTransfer() call. This method is used to send large amounts of data, like a receipt.
+
+Replace: printerInstance.sendBytesData(data)
+
+Action: Call connection.bulkTransfer(outEndpoint, data, data.length, TIMEOUT).
+
+The crucial command sequence is adding a line feed (\n or 0x0A) and a cut paper command (0x1D, 0x56, 0x41, 0x10) to the end of your data bytes for the print job to fully execute and eject the receipt.
+
+This refactoring should resolve the connection issue by replacing the potentially problematic Volcora SDK layer with robust, direct Android USB communication.
