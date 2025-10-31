@@ -1,17 +1,13 @@
 package com.thermalprinter.test;
 
 import android.app.Activity;
-import android.app.Presentation;
+import android.app.ActivityOptions;
 import android.content.Context;
-import android.graphics.Color;
+import android.content.Intent;
 import android.hardware.display.DisplayManager;
-import android.os.Bundle;
+import android.os.Build;
 import android.util.Log;
 import android.view.Display;
-import android.view.WindowManager;
-import android.webkit.WebView;
-import android.webkit.WebSettings;
-import android.widget.LinearLayout;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
@@ -21,7 +17,7 @@ public class DualScreenManager {
     
     private Activity activity;
     private DisplayManager displayManager;
-    private CustomerDisplayPresentation presentation;
+    private boolean isCustomerDisplayActive = false;
 
     public DualScreenManager(Activity activity) {
         this.activity = activity;
@@ -64,21 +60,40 @@ public class DualScreenManager {
             }
             
             Display secondaryDisplay = displays[1];
+            int displayId = secondaryDisplay.getDisplayId();
             
             activity.runOnUiThread(() -> {
-                if (presentation != null) {
-                    presentation.dismiss();
+                try {
+                    // Store HTML content for the new activity
+                    CustomerDisplayActivity.setPendingContent(html);
+                    
+                    // Create intent for CustomerDisplayActivity
+                    Intent intent = new Intent(activity, CustomerDisplayActivity.class);
+                    intent.putExtra("html_content", html);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                    
+                    // Launch on secondary display using ActivityOptions
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        ActivityOptions options = ActivityOptions.makeBasic();
+                        options.setLaunchDisplayId(displayId);
+                        activity.startActivity(intent, options.toBundle());
+                        Log.d(TAG, "Launched CustomerDisplayActivity on display " + displayId + " for independent dual-touch");
+                    } else {
+                        activity.startActivity(intent);
+                        Log.d(TAG, "Launched CustomerDisplayActivity (legacy mode)");
+                    }
+                    
+                    isCustomerDisplayActive = true;
+                    
+                    JSObject result = new JSObject();
+                    result.put("success", true);
+                    result.put("message", "Customer display activity launched with independent touch input");
+                    call.resolve(result);
+                    
+                } catch (Exception e) {
+                    Log.e(TAG, "Error launching customer display activity", e);
+                    call.reject("Failed to launch customer display: " + e.getMessage());
                 }
-                
-                presentation = new CustomerDisplayPresentation(activity, secondaryDisplay, html);
-                presentation.show();
-                
-                JSObject result = new JSObject();
-                result.put("success", true);
-                result.put("message", "Content shown on secondary display");
-                call.resolve(result);
-                
-                Log.d(TAG, "Showing content on secondary display");
             });
         } catch (Exception e) {
             Log.e(TAG, "Error showing on secondary display", e);
@@ -89,83 +104,20 @@ public class DualScreenManager {
     public void hideSecondaryDisplay(PluginCall call) {
         try {
             activity.runOnUiThread(() -> {
-                if (presentation != null) {
-                    presentation.dismiss();
-                    presentation = null;
-                }
+                // The customer display activity will be closed by the user or system
+                // We just mark it as inactive
+                isCustomerDisplayActive = false;
                 
                 JSObject result = new JSObject();
                 result.put("success", true);
-                result.put("message", "Secondary display hidden");
+                result.put("message", "Customer display will close");
                 call.resolve(result);
                 
-                Log.d(TAG, "Hidden secondary display");
+                Log.d(TAG, "Customer display hide requested");
             });
         } catch (Exception e) {
             Log.e(TAG, "Error hiding secondary display", e);
             call.reject("Failed to hide secondary display: " + e.getMessage());
-        }
-    }
-
-    private static class CustomerDisplayPresentation extends Presentation {
-        private String html;
-
-        public CustomerDisplayPresentation(Context outerContext, Display display, String html) {
-            super(outerContext, display);
-            this.html = html;
-        }
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
-            // Configure for dual-screen independent touch operation
-            // Critical flags for dual-touch POS systems:
-            // 1. FLAG_NOT_FOCUSABLE: Main screen keeps keyboard/navigation focus
-            // 2. FLAG_NOT_TOUCH_MODAL: Touch events outside this window pass to main screen
-            // 3. FLAG_WATCH_OUTSIDE_TOUCH: Monitor touches to ensure proper routing
-            if (getWindow() != null) {
-                getWindow().setFlags(
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-                );
-                
-                // Ensure the window doesn't block touches to the main activity
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
-                
-                Log.d(TAG, "Customer display configured for independent dual-touch (POS mode) with touch monitoring");
-            }
-
-            LinearLayout layout = new LinearLayout(getContext());
-            layout.setOrientation(LinearLayout.VERTICAL);
-            layout.setBackgroundColor(Color.WHITE);
-            layout.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-            ));
-
-            WebView webView = new WebView(getContext());
-            webView.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-            ));
-            
-            WebSettings settings = webView.getSettings();
-            settings.setJavaScriptEnabled(true);
-            settings.setDomStorageEnabled(true);
-            settings.setLoadWithOverviewMode(true);
-            settings.setUseWideViewPort(true);
-            
-            webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
-            
-            layout.addView(webView);
-            setContentView(layout);
-            
-            Log.d(TAG, "Customer display: touch-enabled, won't steal focus from employee screen");
         }
     }
 }
