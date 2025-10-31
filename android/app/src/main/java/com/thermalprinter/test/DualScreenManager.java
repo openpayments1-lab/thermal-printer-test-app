@@ -119,14 +119,22 @@ public class DualScreenManager {
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
-            // Prevent customer display from stealing focus from employee screen
-            // FLAG_NOT_FOCUSABLE = doesn't steal focus BUT still receives touch
+            // Configure for dual-screen independent touch operation
             if (getWindow() != null) {
+                // FLAG_NOT_FOCUSABLE: Keeps focus on the main POS window
                 getWindow().setFlags(
                     android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                     android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 );
-                Log.d(TAG, "Customer display set to non-focusable (touch-enabled, won't steal focus)");
+                
+                // FLAG_NOT_TOUCH_MODAL: Allows touch to pass through to main display
+                // AND allows independent touch on this secondary display
+                getWindow().setFlags(
+                    android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                );
+                
+                Log.d(TAG, "Customer display configured for dual-touch operation (both screens fully interactive)");
             }
 
             LinearLayout layout = new LinearLayout(getContext());

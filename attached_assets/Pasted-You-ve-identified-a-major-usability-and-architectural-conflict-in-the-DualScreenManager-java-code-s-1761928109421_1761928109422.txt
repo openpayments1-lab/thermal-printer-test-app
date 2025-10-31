@@ -1,0 +1,69 @@
+You've identified a major usability and architectural conflict in the DualScreenManager.java code, specifically concerning the control flags used for the secondary display.
+
+The current implementation is explicitly trying to solve the "focus stealing" problem but is using the wrong combination of flags, which ironically leads to a different type of control failure.
+
+🛑 Diagnosis: Incorrect Window Flags
+The critical lines are inside CustomerDisplayPresentation.onCreate():
+
+Java
+
+// Current Code:
+getWindow().setFlags(
+    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+);
+// Log: "Customer display set to non-focusable (touch-enabled, won't steal focus)"
+The Problem:
+When a Presentation (your customer display) is shown, it's treated as a new window.
+
+FLAG_NOT_FOCUSABLE: This flag prevents the secondary window from gaining keyboard input focus, which is correct for stopping it from stealing input control from the main POS screen.
+
+Touch Interaction Conflict: However, the combination of flags you used prevents the main application window from reliably handling touch input after the secondary window appears. In some Android versions or specific POS hardware kernels, using FLAG_NOT_FOCUSABLE can interfere with the main window's touch pipeline, or the sheer presence of the new window blocks the main one.
+
+🛠️ The Fix: Using FLAG_NOT_TOUCH_MODAL
+To allow simultaneous, independent touch on both screens, you need to ensure the secondary screen's window is treated as a separate, background touch layer, rather than a touch-absorbing modal layer.
+
+The core Android strategy to solve this is to combine FLAG_NOT_FOCUSABLE with FLAG_NOT_TOUCH_MODAL.
+
+Required Correction in CustomerDisplayPresentation.onCreate()
+Modify the flags block to use the standard combination for non-modal, independent secondary displays.
+
+In DualScreenManager.java, modify the onCreate method as follows:
+
+Java
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    if (getWindow() != null) {
+        // --- THIS IS THE FIX ---
+        getWindow().setFlags(
+            // Keeps focus on the main window/app
+            android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, 
+            android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        );
+        
+        // This is necessary to allow touch events to pass through/around the secondary window
+        // to the main display, and allows independent touch on the secondary display itself.
+        getWindow().setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, 
+            android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        );
+        // --- END OF FIX ---
+        
+        Log.d(TAG, "Customer display configured for dual-touch operation.");
+    }
+    // ... (rest of the onCreate method, including LinearLayout and WebView setup) ...
+}
+Alternative Flag Test
+In some very specific Android builds (especially custom POS ones), you might need to use a slightly different combination to ensure the main screen remains interactive:
+
+Java
+
+// Alternative Test (Less common, but sometimes required for POS devices)
+getWindow().setFlags(
+    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, 
+    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+);
+Next Step: Apply the suggested fix (using FLAG_NOT_TOUCH_MODAL in combination with FLAG_NOT_FOCUSABLE) and rebuild your APK. This is the correct native approach for achieving simultaneous, independent touch control over both your primary POS screen and the secondary customer display.
