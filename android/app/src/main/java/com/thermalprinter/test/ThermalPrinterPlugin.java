@@ -8,14 +8,23 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "ThermalPrinter")
 public class ThermalPrinterPlugin extends Plugin {
 
+    private static final String TAG = "ThermalPrinterPlugin";
     private UsbPrinterManager usbPrinterManager;
     private DualScreenManager dualScreenManager;
 
     @Override
     public void load() {
         super.load();
-        usbPrinterManager = new UsbPrinterManager(getActivity());
-        dualScreenManager = new DualScreenManager(getActivity());
+        try {
+            android.util.Log.d(TAG, "ThermalPrinter plugin loading...");
+            usbPrinterManager = new UsbPrinterManager(getActivity());
+            dualScreenManager = new DualScreenManager(getActivity());
+            android.util.Log.d(TAG, "ThermalPrinter plugin loaded successfully!");
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "Failed to load ThermalPrinter plugin", e);
+            // Re-throw to prevent partial initialization
+            throw new RuntimeException("Failed to initialize ThermalPrinter plugin", e);
+        }
     }
 
     @PluginMethod
