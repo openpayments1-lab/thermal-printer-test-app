@@ -26,18 +26,18 @@ public class CustomerDisplayActivity extends Activity {
         super.onCreate(savedInstanceState);
         instance = this;
         
-        // CRITICAL: Make this window non-focusable and non-touchable
-        // This ensures the employee screen (MainActivity) retains ALL touch control
-        // Customer display is passive/view-only
+        // CRITICAL: Use FLAG_NOT_TOUCH_MODAL to allow touch events to pass through properly
+        // This prevents the customer display from blocking employee screen touch input
+        // NOT_TOUCH_MODAL allows the main screen to receive touch while secondary is open
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
-        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
         
         android.view.Display display = getDisplay();
         Log.d(TAG, "CustomerDisplayActivity created on display:");
         Log.d(TAG, "  Display ID: " + display.getDisplayId());
         Log.d(TAG, "  Display Name: " + display.getName());
         Log.d(TAG, "  Is DEFAULT_DISPLAY: " + (display.getDisplayId() == android.view.Display.DEFAULT_DISPLAY));
-        Log.d(TAG, "  Window flags: NOT_FOCUSABLE + NOT_TOUCHABLE (passive customer display)");
+        Log.d(TAG, "  Window flags: NOT_FOCUSABLE + NOT_TOUCH_MODAL (allows employee touch)");
 
         // Get HTML content from intent or static storage
         String htmlContent = getIntent().getStringExtra("html_content");
