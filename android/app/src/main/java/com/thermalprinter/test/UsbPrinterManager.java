@@ -209,54 +209,80 @@ public class UsbPrinterManager {
     
     private boolean connectGenericUSB(UsbDevice device) {
         try {
+            Log.d(TAG, "=== Attempting Generic USB Connection ===");
+            Log.d(TAG, "Device: " + device.getDeviceName());
+            Log.d(TAG, "VID: 0x" + Integer.toHexString(device.getVendorId()) + ", PID: 0x" + Integer.toHexString(device.getProductId()));
+            Log.d(TAG, "Device Class: " + device.getDeviceClass() + ", Subclass: " + device.getDeviceSubclass());
+            Log.d(TAG, "Interface Count: " + device.getInterfaceCount());
+            
             // Open USB connection
             usbConnection = usbManager.openDevice(device);
             if (usbConnection == null) {
-                Log.e(TAG, "Failed to open USB connection");
+                Log.e(TAG, "❌ Failed to open USB connection - device may not be accessible");
                 return false;
             }
+            
+            Log.d(TAG, "✓ USB connection opened successfully");
             
             // Find the printer interface (usually interface 0)
             if (device.getInterfaceCount() == 0) {
-                Log.e(TAG, "No USB interfaces found");
-                return false;
-            }
-            
-            usbInterface = device.getInterface(0);
-            
-            // Claim the interface
-            if (!usbConnection.claimInterface(usbInterface, true)) {
-                Log.e(TAG, "Failed to claim USB interface");
+                Log.e(TAG, "❌ No USB interfaces found on device");
                 usbConnection.close();
                 usbConnection = null;
                 return false;
             }
             
+            usbInterface = device.getInterface(0);
+            Log.d(TAG, "Interface 0: Class=" + usbInterface.getInterfaceClass() + 
+                      ", Subclass=" + usbInterface.getInterfaceSubclass() +
+                      ", Protocol=" + usbInterface.getInterfaceProtocol() +
+                      ", Endpoints=" + usbInterface.getEndpointCount());
+            
+            // Claim the interface
+            if (!usbConnection.claimInterface(usbInterface, true)) {
+                Log.e(TAG, "❌ Failed to claim USB interface - device may be in use");
+                usbConnection.close();
+                usbConnection = null;
+                return false;
+            }
+            
+            Log.d(TAG, "✓ Interface claimed successfully");
+            
             // Find the bulk OUT endpoint for sending data to printer
+            Log.d(TAG, "Searching for bulk OUT endpoint...");
             for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
                 UsbEndpoint endpoint = usbInterface.getEndpoint(i);
+                Log.d(TAG, "  Endpoint " + i + ": Type=" + endpoint.getType() + 
+                          ", Direction=" + endpoint.getDirection() +
+                          ", MaxPacketSize=" + endpoint.getMaxPacketSize());
+                          
                 if (endpoint.getType() == android.hardware.usb.UsbConstants.USB_ENDPOINT_XFER_BULK &&
                     endpoint.getDirection() == android.hardware.usb.UsbConstants.USB_DIR_OUT) {
                     usbEndpoint = endpoint;
+                    Log.d(TAG, "✓ Found bulk OUT endpoint at index " + i);
                     break;
                 }
             }
             
             if (usbEndpoint == null) {
-                Log.e(TAG, "No bulk OUT endpoint found");
+                Log.e(TAG, "❌ No bulk OUT endpoint found - device may not be a printer");
                 usbConnection.releaseInterface(usbInterface);
                 usbConnection.close();
                 usbConnection = null;
                 return false;
             }
             
-            Log.d(TAG, "Successfully connected to generic USB printer");
+            Log.d(TAG, "✅ Successfully connected to generic USB printer!");
             return true;
             
         } catch (Exception e) {
-            Log.e(TAG, "Error in generic USB connection", e);
+            Log.e(TAG, "❌ Exception in generic USB connection: " + e.getMessage(), e);
             if (usbConnection != null) {
-                usbConnection.close();
+                try {
+                    usbConnection.close();
+                } catch (Exception ex) {
+                    // Ignore
+                }
                 usbConnection = null;
             }
             return false;

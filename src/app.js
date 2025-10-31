@@ -129,10 +129,19 @@ class ThermalPrinterApp {
                     }
                     
                     result.devices.forEach((dev, idx) => {
-                        this.log(`Device ${idx + 1}: ${dev.manufacturerName || 'Unknown'} ${dev.productName || ''} (VID: 0x${dev.vendorId.toString(16).toUpperCase()}, PID: 0x${dev.productId.toString(16).toUpperCase()})`);
+                        const deviceClass = dev.deviceClass === 7 ? 'Printer' : dev.deviceClass === 0 ? 'Interface-defined' : `Class ${dev.deviceClass}`;
+                        this.log(`Device ${idx + 1}: ${dev.manufacturerName || 'Unknown'} ${dev.productName || ''} (VID: 0x${dev.vendorId.toString(16).toUpperCase()}, PID: 0x${dev.productId.toString(16).toUpperCase()}) - ${deviceClass}`);
                     });
                     
-                    const device = result.devices[0];
+                    // Try to find a printer device (class 7) first
+                    let device = result.devices.find(d => d.deviceClass === 7);
+                    if (!device) {
+                        // Fallback to first device
+                        device = result.devices[0];
+                        this.log('⚠ No device with Printer class (7) found, using first device', 'info');
+                    } else {
+                        this.log(`Selected printer device: ${device.manufacturerName || 'Unknown'}`, 'info');
+                    }
                     this.selectedDevice = device;
                     
                     this.log(`Connecting to ${device.manufacturerName || 'USB'} printer...`);
