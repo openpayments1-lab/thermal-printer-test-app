@@ -1,13 +1,8 @@
 package com.thermalprinter.test;
 
-import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        
-        registerPlugin(ThermalPrinterPlugin.class);
-    }
+    // Plugins with @CapacitorPlugin annotation are auto-discovered in Capacitor 5
+    // No manual registration needed
 }
