@@ -1,0 +1,16 @@
+This log provides the definitive confirmation that the "Ilitek" devices are not the printer, and it successfully found the thermal printer itself, which you should be connecting to instead.Here's the analysis and the necessary correction to your native Java code:🔎 Device Analysis & The Core MistakeYour log shows three distinct USB devices:DeviceVIDPIDClassRoleDevice 1: Ilitek0x222A0x0001N/ASecondary Display / Touch ControllerDevice 2: Ilitek0x222A0x0001N/ASecondary Display / Touch ControllerDevice 3: Spirit Printer0x04830x5720N/AThe Thermal PrinterThe critical error is the line: using first device connecting to iliteek printer.You are attempting to connect to the secondary display using logic meant for the printer, which is why the connection consistently fails for both SDKs. The Ilitek devices are likely touch/control components for the dual screen setup, as previously suspected.🛠️ Solution: Target the Correct DeviceYou must update your UsbPrinterManager.java logic to ignore the Ilitek devices and specifically target the one named "Spirit printer" with VID 0x0483 and PID 0x5720.Here is how your device filtering logic should be revised:Stop Hardcoding the First Device: Do not use the first device found if it doesn't match the printer's expected identifiers.Filter by Printer VID/PID: Update your search loop in connectToPrinter(int vendorId, int productId, PluginCall call) to use the correct printer IDs.Required Code Correction (Conceptual)The logic should prioritize matching the printer's known VIDs/PIDs:Java// Correct IDs for the Spirit Printer (Volcora 50020X)
+final int PRINTER_VID = 0x0483;
+final int PRINTER_PID = 0x5720;
+
+UsbDevice targetDevice = null;
+
+for (UsbDevice device : deviceList.values()) {
+    // Correctly target the identified printer
+    if (device.getVendorId() == PRINTER_VID && device.getProductId() == PRINTER_PID) {
+        targetDevice = device;
+        // Optionally break here, but allowing the loop to finish might be safer
+    }
+}
+// If targetDevice is still null, then check for the Ilitek devices and log them, 
+// but ONLY connect to the Spirit Printer.
+Next Step: Apply these new PRINTER_VID and PRINTER_PID values in your `connectToPrinter

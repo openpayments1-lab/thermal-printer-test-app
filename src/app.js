@@ -133,15 +133,39 @@ class ThermalPrinterApp {
                         this.log(`Device ${idx + 1}: ${dev.manufacturerName || 'Unknown'} ${dev.productName || ''} (VID: 0x${dev.vendorId.toString(16).toUpperCase()}, PID: 0x${dev.productId.toString(16).toUpperCase()}) - ${deviceClass}`);
                     });
                     
-                    // Try to find a printer device (class 7) first
-                    let device = result.devices.find(d => d.deviceClass === 7);
-                    if (!device) {
-                        // Fallback to first device
-                        device = result.devices[0];
-                        this.log('⚠ No device with Printer class (7) found, using first device', 'info');
-                    } else {
-                        this.log(`Selected printer device: ${device.manufacturerName || 'Unknown'}`, 'info');
+                    // Smart device selection
+                    let device = null;
+                    
+                    // 1. Try printer class (7) devices first
+                    device = result.devices.find(d => d.deviceClass === 7);
+                    if (device) {
+                        this.log(`✓ Selected USB Printer class device: ${device.manufacturerName || 'Unknown'}`, 'info');
                     }
+                    
+                    // 2. Try known printer vendor IDs (skip touchscreen devices)
+                    if (!device) {
+                        // Filter out Ilitek (0x222A) - touchscreen/display hardware
+                        const nonDisplayDevices = result.devices.filter(d => d.vendorId !== 0x222A);
+                        
+                        if (nonDisplayDevices.length > 0) {
+                            // Prefer Spirit (0x483 = STMicroelectronics, common in thermal printers)
+                            // or VOLCORA (0x1155)
+                            device = nonDisplayDevices.find(d => d.vendorId === 0x483 || d.vendorId === 0x1155);
+                            
+                            if (!device) {
+                                // Use first non-display device
+                                device = nonDisplayDevices[0];
+                            }
+                            this.log(`✓ Selected non-display device: ${device.manufacturerName || 'Unknown'} (VID: 0x${device.vendorId.toString(16).toUpperCase()})`, 'info');
+                        }
+                    }
+                    
+                    // 3. Last resort: use first device
+                    if (!device) {
+                        device = result.devices[0];
+                        this.log('⚠ Using first available device (no printer detected)', 'info');
+                    }
+                    
                     this.selectedDevice = device;
                     
                     this.log(`Connecting to ${device.manufacturerName || 'USB'} printer...`);
