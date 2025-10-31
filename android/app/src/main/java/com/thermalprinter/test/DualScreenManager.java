@@ -120,21 +120,16 @@ public class DualScreenManager {
             super.onCreate(savedInstanceState);
 
             // Configure for dual-screen independent touch operation
+            // Using combined flags in single call (required for some POS hardware)
             if (getWindow() != null) {
-                // FLAG_NOT_FOCUSABLE: Keeps focus on the main POS window
                 getWindow().setFlags(
-                    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | 
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 );
                 
-                // FLAG_NOT_TOUCH_MODAL: Allows touch to pass through to main display
-                // AND allows independent touch on this secondary display
-                getWindow().setFlags(
-                    android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                    android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                );
-                
-                Log.d(TAG, "Customer display configured for dual-touch operation (both screens fully interactive)");
+                Log.d(TAG, "Customer display configured for independent dual-touch (POS mode)");
             }
 
             LinearLayout layout = new LinearLayout(getContext());
