@@ -1,0 +1,208 @@
+🏗️ Architecture Overview
+Stack:
+
+Frontend: HTML/CSS/JavaScript (web app)
+Bridge: Capacitor (connects web to native Android)
+Native Layer: Custom Java plugin for USB hardware access
+Printer Protocol: ESC/POS commands via USB bulk transfer
+Why this approach:
+
+Web apps can't access USB hardware directly
+Capacitor plugin bridges JavaScript to native Android USB APIs
+Direct USB bulk transfer works with ANY ESC/POS thermal printer
+No vendor lock-in - works with generic thermal printers
+🔌 Step 1: USB Device Detection & Connection
+A. Device Selection Logic (JavaScript)
+// Filter devices to find the printer
+const devices = await ThermalPrinter.listUsbDevices();
+// Skip touchscreen/display devices (common in POS hardware)
+const isDisplay = (d) => {
+    const vid = d.vendorId;
+    const name = (d.manufacturerName || '').toLowerCase();
+    return vid === 0x222A || vid === 8746 || name.includes('ilitek');
+};
+const printerDevices = devices.filter(d => !isDisplay(d));
+// Priority selection:
+// 1. USB class 7 (Printer class)
+// 2. Known thermal printer vendor IDs (Spirit: 0x483, VOLCORA: 0x1155)
+// 3. First non-display device
+let printer = printerDevices.find(d => d.deviceClass === 7);
+if (!printer) {
+    printer = printerDevices.find(d => d.vendorId === 0x483 || d.vendorId === 0x1155);
+}
+if (!printer) {
+    printer = printerDevices[0];
+}
+// Connect to selected device
+await ThermalPrinter.connectToPrinter({
+    vendorId: printer.vendorId,
+    productId: printer.productId
+});
+
+B. USB Connection (Native Java)
+// Find device by VID/PID
+UsbDevice targetDevice = null;
+for (UsbDevice device : usbManager.getDeviceList().values()) {
+    if (device.getVendorId() == vendorId && device.getProductId() == productId) {
+        targetDevice = device;
+        break;
+    }
+}
+// Open USB connection
+UsbDeviceConnection connection = usbManager.openDevice(targetDevice);
+// Claim interface (usually interface 0 for printers)
+UsbInterface usbInterface = targetDevice.getInterface(0);
+connection.claimInterface(usbInterface, true);
+// Find bulk OUT endpoint (for sending data to printer)
+UsbEndpoint endpoint = null;
+for (int i = 0; i < usbInterface.getEndpointCount(); i++) {
+    UsbEndpoint ep = usbInterface.getEndpoint(i);
+    if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_BULK &&
+        ep.getDirection() == UsbConstants.USB_DIR_OUT) {
+        endpoint = ep;
+        break;
+    }
+}
+
+🖨️ Step 2: ESC/POS Command Structure
+ESC/POS is the standard thermal printer protocol. Commands are byte sequences.
+
+Key Commands:
+// Command constants (send as byte arrays)
+const ESC = 0x1B;
+const GS = 0x1D;
+const LF = 0x0A;  // Line feed (new line)
+// Initialize printer
+[ESC, '@']
+// Text formatting
+[ESC, 'E', 1]  // Bold ON
+[ESC, 'E', 0]  // Bold OFF
+[ESC, 'a', 0]  // Left align
+[ESC, 'a', 1]  // Center align
+[ESC, 'a', 2]  // Right align
+// Font size (double width/height)
+[GS, '!', 0x00]  // Normal
+[GS, '!', 0x11]  // Double width + height
+[GS, '!', 0x01]  // Double height only
+// Cut paper
+[GS, 'V', 66, 0]  // Full cut
+[GS, 'V', 65, 0]  // Partial cut
+// Line feed
+[LF]  // Single line
+
+Text Encoding:
+// Convert text to bytes (use ISO-8859-1 for special characters)
+function textToBytes(text) {
+    const encoder = new TextEncoder('iso-8859-1');
+    return Array.from(encoder.encode(text));
+}
+
+📝 Step 3: Receipt Layout Implementation
+Example Receipt Structure:
+function buildReceipt(items, total) {
+    const commands = [];
+    
+    // 1. Initialize
+    commands.push([0x1B, 0x40]);  // ESC @
+    
+    // 2. Header (centered, bold, double-size)
+    commands.push([0x1B, 0x61, 1]);        // Center
+    commands.push([0x1D, 0x21, 0x11]);     // Double size
+    commands.push([0x1B, 0x45, 1]);        // Bold
+    commands.push(...textToBytes('MY STORE\n'));
+    commands.push([0x1B, 0x45, 0]);        // Bold off
+    commands.push([0x1D, 0x21, 0x00]);     // Normal size
+    commands.push([0x0A]);                 // Line feed
+    
+    // 3. Date/Time (left aligned, normal)
+    commands.push([0x1B, 0x61, 0]);        // Left align
+    const date = new Date().toLocaleString();
+    commands.push(...textToBytes(date + '\n'));
+    commands.push(...textToBytes('--------------------------------\n'));
+    
+    // 4. Items
+    items.forEach(item => {
+        const line = `${item.name.padEnd(20)} $${item.price.toFixed(2)}\n`;
+        commands.push(...textToBytes(line));
+    });
+    
+    // 5. Total (right aligned, bold)
+    commands.push(...textToBytes('--------------------------------\n'));
+    commands.push([0x1B, 0x61, 2]);        // Right align
+    commands.push([0x1B, 0x45, 1]);        // Bold
+    commands.push(...textToBytes(`TOTAL: $${total.toFixed(2)}\n`));
+    commands.push([0x1B, 0x45, 0]);        // Bold off
+    
+    // 6. Footer
+    commands.push([0x1B, 0x61, 1]);        // Center
+    commands.push([0x0A, 0x0A]);           // 2 line feeds
+    commands.push(...textToBytes('Thank you!\n'));
+    commands.push([0x0A, 0x0A, 0x0A]);     // 3 line feeds
+    
+    // 7. Cut paper
+    commands.push([0x1D, 0x56, 66, 0]);
+    
+    return commands.flat();
+}
+
+📡 Step 4: Sending Data to Printer
+JavaScript Call:
+const receiptData = buildReceipt(cartItems, totalAmount);
+await ThermalPrinter.print({
+    data: receiptData  // Send byte array
+});
+
+Native Java USB Transfer:
+public void print(byte[] data) {
+    // Send data in chunks (USB packet size limit)
+    int chunkSize = 4096;
+    int offset = 0;
+    
+    while (offset < data.length) {
+        int length = Math.min(chunkSize, data.length - offset);
+        byte[] chunk = Arrays.copyOfRange(data, offset, offset + length);
+        
+        int bytesTransferred = usbConnection.bulkTransfer(
+            usbEndpoint,
+            chunk,
+            chunk.length,
+            5000  // 5 second timeout
+        );
+        
+        if (bytesTransferred < 0) {
+            throw new Exception("USB transfer failed");
+        }
+        
+        offset += length;
+    }
+}
+
+🎯 Key Implementation Tips
+1. Paper Width
+80mm paper = 72mm print width
+~48 characters per line (at standard font)
+Use .padEnd() and .padStart() for alignment
+2. Text Formatting
+// Left-aligned item with right-aligned price
+function formatLine(item, price, width = 32) {
+    const priceStr = price.toFixed(2);
+    const spaces = width - item.length - priceStr.length;
+    return item + ' '.repeat(spaces) + priceStr;
+}
+// "Coffee          $3.50"
+
+3. Error Handling
+Check USB permissions before connecting
+Handle device disconnection gracefully
+Implement retry logic for failed prints
+Validate receipt data before sending
+4. Testing
+Test with printer's self-test first: [0x1D, 0x28, 0x41]
+Start with simple text before complex layouts
+Use logcat to debug USB transfer issues
+📦 Required Files
+Capacitor Plugin (ThermalPrinterPlugin.java) - Exposes methods to JavaScript
+USB Manager (UsbPrinterManager.java) - Handles USB connection & data transfer
+Frontend (app.js) - Receipt builder & UI logic
+AndroidManifest.xml - USB permissions
+That's the complete receipt printing system! The other agent should be able to implement this following these steps. Want me to create the dual-screen display instructions next? 📺
