@@ -28,22 +28,33 @@ public class DualScreenManager {
         try {
             Display[] displays = displayManager.getDisplays();
             
+            // Find the actual secondary display (not the default/primary display)
+            Display secondaryDisplay = null;
+            for (Display display : displays) {
+                Log.d(TAG, "Found display - ID: " + display.getDisplayId() + ", Name: " + display.getName());
+                if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
+                    secondaryDisplay = display;
+                    break;
+                }
+            }
+            
             JSObject result = new JSObject();
-            result.put("hasSecondaryDisplay", displays.length > 1);
+            result.put("hasSecondaryDisplay", secondaryDisplay != null);
             result.put("displayCount", displays.length);
             
-            if (displays.length > 1) {
-                Display secondaryDisplay = displays[1];
+            if (secondaryDisplay != null) {
                 JSObject displayInfo = new JSObject();
                 displayInfo.put("displayId", secondaryDisplay.getDisplayId());
                 displayInfo.put("name", secondaryDisplay.getName());
                 displayInfo.put("width", secondaryDisplay.getMode().getPhysicalWidth());
                 displayInfo.put("height", secondaryDisplay.getMode().getPhysicalHeight());
                 result.put("secondaryDisplayInfo", displayInfo);
+                Log.d(TAG, "Secondary (customer) display found: ID " + secondaryDisplay.getDisplayId());
+            } else {
+                Log.d(TAG, "No secondary display found (only default display present)");
             }
             
             call.resolve(result);
-            Log.d(TAG, "Display count: " + displays.length);
         } catch (Exception e) {
             Log.e(TAG, "Error checking secondary display", e);
             call.reject("Failed to check secondary display: " + e.getMessage());
@@ -54,12 +65,21 @@ public class DualScreenManager {
         try {
             Display[] displays = displayManager.getDisplays();
             
-            if (displays.length < 2) {
+            // Find the actual secondary display (not the default/primary display)
+            Display secondaryDisplay = null;
+            for (Display display : displays) {
+                if (display.getDisplayId() != Display.DEFAULT_DISPLAY) {
+                    secondaryDisplay = display;
+                    Log.d(TAG, "Selected display ID " + display.getDisplayId() + " (" + display.getName() + ") for customer display");
+                    break;
+                }
+            }
+            
+            if (secondaryDisplay == null) {
                 call.reject("No secondary display found");
                 return;
             }
             
-            Display secondaryDisplay = displays[1];
             int displayId = secondaryDisplay.getDisplayId();
             
             activity.runOnUiThread(() -> {
