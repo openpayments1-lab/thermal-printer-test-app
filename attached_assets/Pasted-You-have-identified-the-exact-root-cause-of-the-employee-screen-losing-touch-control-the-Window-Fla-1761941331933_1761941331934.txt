@@ -1,0 +1,55 @@
+You have identified the exact root cause of the employee screen losing touch control: the Window Flags are too restrictive on the customer display.
+
+The current code explicitly makes the secondary screen completely passive by using FLAG_NOT_TOUCHABLE, which prevents the main screen from receiving input.
+
+🛑 Diagnosis: Overly Restrictive Window Flags
+The critical lines are inside onCreate():
+
+Java
+
+// CRITICAL: Make this window non-focusable and non-touchable
+getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+The Problem
+FLAG_NOT_TOUCHABLE: This flag prevents the customer display from receiving any touch input. In the typical Android window hierarchy for a dual-display setup, when one window is marked this way, it often causes unpredictable touch routing issues for the window beneath it, especially on custom POS kernels.
+
+Missing FLAG_NOT_TOUCH_MODAL: The correct flag to use when you want the secondary screen to appear but not interfere with the main screen's touch input is FLAG_NOT_TOUCH_MODAL.
+
+The Fix: Change Touch Strategy to NOT_TOUCH_MODAL
+You need the employee screen to receive touch events, and the customer screen to either receive its own touch events, or, if passive, simply let the events go through. For a successful dual-touch environment, using FLAG_NOT_TOUCH_MODAL is essential.
+
+You must choose one goal for the customer display: Interactive (accepts touch) or Passive/View-Only (ignores touch but doesn't block the main screen).
+
+Option 1: Interactive Customer Display (Recommended)
+If the customer display should allow touch (for things like signature or loyalty prompts), you need the combination we discussed earlier:
+
+In CustomerDisplayActivity.java, modify the flags inside onCreate():
+
+Java
+
+// CRITICAL: Set flags for INDEPENDENT touch input (Dual Touch)
+getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+// ADD THIS LINE: Allows touch events to fall through/around the secondary window
+getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL); 
+
+// REMOVE the overly restrictive FLAG_NOT_TOUCHABLE
+// REMOVE: getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+// REMOVE: webView.setOnTouchListener((v, event) -> true); 
+Option 2: Passive View-Only Display (Fixing Current Goal)
+If the customer screen must remain strictly passive (view-only), you need to change FLAG_NOT_TOUCHABLE to FLAG_NOT_TOUCH_MODAL to prevent it from blocking the main screen.
+
+In CustomerDisplayActivity.java, modify the flags inside onCreate():
+
+Java
+
+// CRITICAL: Make this window non-focusable and allow events to pass through
+getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+// ADD THIS LINE: Allows main screen to work while secondary is open
+getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL); 
+
+// Keep webview passive (recommended for passive mode)
+webView.setOnTouchListener((v, event) -> true); 
+
+// REMOVE the problematic FLAG_NOT_TOUCHABLE (it is unnecessary when NOT_TOUCH_MODAL is present and causes conflicts)
+// REMOVE: getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+Choose Option 1 if you ever expect touch on the customer display, or Option 2 if it must be strictly passive. This resolves the conflict at the OS level by correctly defining the touch layers.

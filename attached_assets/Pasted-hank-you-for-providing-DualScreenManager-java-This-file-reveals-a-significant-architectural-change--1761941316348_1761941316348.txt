@@ -1,0 +1,83 @@
+hank you for providing DualScreenManager.java. This file reveals a significant architectural change from using a Presentation dialog to using a separate, independent CustomerDisplayActivity. This change is often necessary when the Presentation class causes unexpected modal behavior on POS hardware.
+
+However, the current display selection logic is likely the root of the control stealing issue.
+
+🛑 Root Cause: Display Selection Logic is Reversed
+Your previous troubleshooting hinted that your POS hardware is inverted, meaning the system treats the customer-facing screen as Display.DEFAULT_DISPLAY (ID: 0) and the employee-facing screen (where the main POS app runs) as a secondary display (ID: 1).
+
+Your current DualScreenManager logic fails to account for this inversion when selecting the target screen to launch the CustomerDisplayActivity on:
+
+Current Selection Logic (The Problematic Fallback):
+Java
+
+// Fallback: Use non-default display
+for (Display display : allDisplays) {
+    if (display.getDisplayId() != Display.DEFAULT_DISPLAY) { // Finds the non-default screen
+        customerDisplay = display;
+        // ... then launches CustomerDisplayActivity on it
+        break; 
+    }
+}
+If the POS hardware is inverted:
+
+Main POS Screen (Employee): This screen has an ID of 1 (non-default).
+
+Customer Screen (Display): This screen has an ID of 0 (default).
+
+When your code runs, it finds the first non-default display (ID: 1) and assumes it's the target customer screen. Instead, it's launching the CustomerDisplayActivity on top of your Employee's main POS screen, effectively blocking the employee's input and "stealing control."
+
+🛠️ The Fix: Prioritize Non-Primary Display IDs
+The most reliable way to target the secondary display, regardless of which screen is marked DEFAULT_DISPLAY, is to pick any available display that is not the primary activity's display.
+
+Since Capacitor's MainActivity is always tied to its display, a safer approach is to specifically target the display ID that is not currently running the main app, or iterate over IDs and skip the primary.
+
+Recommended Correction in showOnSecondaryDisplay
+You should try getting all displays and selecting the one with the highest ID, or simply skipping the ID running your main app (which is usually ID 0). Since the POS hardware is inverted, let's assume the Employee screen is always ID 0 and the Customer Screen is always ID 1, or that we need to find the non-default display and ensure we launch the customer activity on the correct one.
+
+The simplest, most direct fix in your else block (Fallback mode) is to iterate and look for a non-default display, but launch the main POS app on the first available display and the customer screen on the subsequent display.
+
+Since the architecture is already using a static class method to launch the activity on a display ID, we need to ensure the correct ID is passed:
+
+Java
+
+// Inside showOnSecondaryDisplay and checkSecondaryDisplay
+// Replace the entire 'else' (Fallback) block to find the highest display ID, 
+// assuming the highest ID is the target Customer Display (ID 1).
+
+} else {
+    // Fallback: Use non-default display, assuming ID 1 is the secondary screen
+    // We iterate through allDisplays, skipping the default (ID 0)
+    
+    for (Display display : allDisplays) {
+        // We find the first display that is NOT the default display (ID 0)
+        // In POS inverted setups, ID 0 is the Customer screen, and ID 1 is the Employee screen!
+        // We need to launch the Customer Display activity on the Customer Display.
+        
+        // IF THE POS IS INVERTED: We must launch the CustomerDisplayActivity on Display ID 0.
+        // IF THE POS IS STANDARD: We must launch the CustomerDisplayActivity on Display ID 1 (or any non-zero ID).
+        
+        // Let's assume the POS is standard and the logic is currently just missing the ID 1 selection:
+        if (allDisplays.length > 1) {
+            // Force the customer display to be the one at index 1
+            customerDisplay = allDisplays[1]; 
+            Log.d(TAG, "FALLBACK: Forcing use of display index [1] for customer screen (ID: " + customerDisplay.getDisplayId() + ")");
+            break; 
+        }
+    }
+}
+This issue is too complex to be fixed with conceptual code alone, as it depends entirely on the return values of displayManager.getDisplays() on your actual hardware.
+
+Next Step:
+
+I need to see the output of the log line you already added when the dual screen is active:
+
+Java
+
+// Log all displays for diagnostics
+for (Display display : allDisplays) {
+    Log.d(TAG, "Display found - ID: " + display.getDisplayId() + 
+        ", Name: " + display.getName() + 
+        ", State: " + display.getState() +
+        ", IsDefault: " + (display.getDisplayId() == Display.DEFAULT_DISPLAY));
+}
+Please run your app and provide the exact log output for this loop. This will tell us definitively which display ID is which, allowing us to implement the correct target ID (0 or 1).
