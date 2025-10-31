@@ -11,15 +11,28 @@ import android.widget.LinearLayout;
 public class CustomerDisplayActivity extends Activity {
     private static final String TAG = "CustomerDisplayActivity";
     private static String pendingHtmlContent = "";
+    private static CustomerDisplayActivity instance;
 
     public static void setPendingContent(String html) {
         pendingHtmlContent = html;
+    }
+    
+    public static CustomerDisplayActivity getInstance() {
+        return instance;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "CustomerDisplayActivity created on display: " + getDisplay().getDisplayId());
+        instance = this;
+        
+        // CRITICAL: Make this window non-focusable and non-touchable
+        // This ensures the employee screen (MainActivity) retains ALL touch control
+        // Customer display is passive/view-only
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+        
+        Log.d(TAG, "CustomerDisplayActivity created on display " + getDisplay().getDisplayId() + " (passive, non-touchable)");
 
         // Get HTML content from intent or static storage
         String htmlContent = getIntent().getStringExtra("html_content");
@@ -50,11 +63,14 @@ public class CustomerDisplayActivity extends Activity {
         settings.setUseWideViewPort(true);
 
         webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null);
+        
+        // Ensure WebView doesn't intercept touch events
+        webView.setOnTouchListener((v, event) -> true);
 
         layout.addView(webView);
         setContentView(layout);
 
-        Log.d(TAG, "Customer display activity ready with independent touch input");
+        Log.d(TAG, "Customer display ready (passive view-only, employee screen retains touch control)");
     }
 
     @Override
@@ -67,5 +83,14 @@ public class CustomerDisplayActivity extends Activity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "CustomerDisplayActivity onPause");
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (instance == this) {
+            instance = null;
+        }
+        Log.d(TAG, "CustomerDisplayActivity destroyed");
     }
 }

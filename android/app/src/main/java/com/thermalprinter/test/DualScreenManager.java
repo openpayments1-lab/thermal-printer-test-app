@@ -104,16 +104,19 @@ public class DualScreenManager {
     public void hideSecondaryDisplay(PluginCall call) {
         try {
             activity.runOnUiThread(() -> {
-                // The customer display activity will be closed by the user or system
-                // We just mark it as inactive
+                // Finish the customer display activity to properly close it
+                CustomerDisplayActivity customerActivity = CustomerDisplayActivity.getInstance();
+                if (customerActivity != null) {
+                    customerActivity.finish();
+                    Log.d(TAG, "CustomerDisplayActivity finished");
+                }
+                
                 isCustomerDisplayActive = false;
                 
                 JSObject result = new JSObject();
                 result.put("success", true);
-                result.put("message", "Customer display will close");
+                result.put("message", "Customer display closed");
                 call.resolve(result);
-                
-                Log.d(TAG, "Customer display hide requested");
             });
         } catch (Exception e) {
             Log.e(TAG, "Error hiding secondary display", e);
